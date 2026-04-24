@@ -1,89 +1,147 @@
-name: appmedical
-description: "A new Flutter project."
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+name: sgp_app
+description: "Sistema de Gestión de Pacientes — SGP · Sprint 1 · Abril–Mayo 2025"
+publish_to: "none"
 
-# The following defines the version and build number for your application.
-# A version number is three numbers separated by dots, like 1.2.43
-# followed by an optional build number separated by a +.
-# Both the version and the builder number may be overridden in flutter
-# build by specifying --build-name and --build-number, respectively.
-# In Android, build-name is used as versionName while build-number used as versionCode.
-# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
-# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
-# Read more about iOS versioning at
-# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-# In Windows, build-name is used as the major, minor, and patch parts
-# of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 0.1.0+1
 
 environment:
-  sdk: ^3.11.4
+  sdk: ^3.7.0
 
-# Dependencies specify other packages that your package needs in order to work.
-# To automatically upgrade your package dependencies to the latest versions
-# consider running `flutter pub upgrade --major-versions`. Alternatively,
-# dependencies can be manually updated by changing the version numbers below to
-# the latest version available on pub.dev. To see which dependencies have newer
-# versions available, run `flutter pub outdated`.
+# =============================================================================
+# DEPENDENCIAS DE PRODUCCIÓN
+# =============================================================================
 dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
+  # ---------------------------------------------------------------------------
+  # NAVEGACIÓN
+  # go_router — mantenido por el equipo de Flutter, soporta deep links,
+  # redirección basada en estado de auth (PB-07), rutas por rol.
+  # ---------------------------------------------------------------------------
+  go_router: ^14.8.0
 
+  # ---------------------------------------------------------------------------
+  # ESTADO Y GESTIÓN DE DATOS
+  # flutter_riverpod — inyección de dependencias + estado reactivo.
+  # Cada módulo (auth, historial, alergias) tiene sus propios providers
+  # sin interferir con los demás → ideal para el trabajo en paralelo.
+  # ---------------------------------------------------------------------------
+  flutter_riverpod: ^3.3.1
+
+  # ---------------------------------------------------------------------------
+  # HTTP / API
+  # dio — cliente HTTP con interceptores. Se usa para:
+  #   • Agregar el header Authorization: Bearer <JWT> en cada request (PB-06)
+  #   • Renovar automáticamente el JWT cuando queda < 5 min (PB-06)
+  #   • Manejar errores de red de forma centralizada
+  # ---------------------------------------------------------------------------
+  dio: ^5.9.2
+
+  # ---------------------------------------------------------------------------
+  # ALMACENAMIENTO SEGURO
+  # flutter_secure_storage — guarda el JWT y el refresh token en:
+  #   • Android: EncryptedSharedPreferences / Keystore
+  #   • iOS: Keychain
+  # Requerido por PB-06 (refresh token almacenado de forma segura).
+  # ---------------------------------------------------------------------------
+  flutter_secure_storage: ^9.2.4
+
+  # ---------------------------------------------------------------------------
+  # JWT
+  # jwt_decoder — decodifica y verifica expiración del JWT en el cliente.
+  # Usado para detectar cuándo faltan < 5 min para renovar (PB-06).
+  # ---------------------------------------------------------------------------
+  jwt_decoder: ^2.0.1
+
+  # ---------------------------------------------------------------------------
+  # SERIALIZACIÓN DE MODELOS
+  # freezed_annotation + json_annotation — generan clases inmutables con
+  # copyWith, equals y fromJson/toJson. Útil para: UserModel, PatientModel,
+  # AllergyModel, PrescriptionModel.
+  # ---------------------------------------------------------------------------
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
+  # ---------------------------------------------------------------------------
+  # INTERNACIONALIZACIÓN
+  # intl — formatos de fecha (DD/MM/AAAA requerido en PB-10, PB-14) y
+  # localización en español (Colombia).
+  # flutter_localizations — traducciones de Material widgets al español.
+  # ---------------------------------------------------------------------------
+  intl: any
+  flutter_localizations:
+    sdk: flutter
+
+  # ---------------------------------------------------------------------------
+  # UI / COMPONENTES
+  # ---------------------------------------------------------------------------
+
+  # Iconos de Material Design 3
+  material_design_icons_flutter: ^7.0.7296
+
+  # PIN / OTP input — campo de 6 dígitos para el MFA (PB-04)
+  pinput: ^5.0.0
+
+  # Selector de fecha nativo — usado en datos demográficos (PB-10)
+  # y en el formulario de alergias (PB-20)
+  flutter_datetime_picker_bdaya: ^1.3.0
+
+  # Autocompletado de medicamentos — buscador con sugerencias para
+  # prescripciones (PB-15) y alergias (PB-20)
+  flutter_typeahead: ^5.2.0
+
+  # Formularios con validación reactiva (alternativa a Form nativo)
+  reactive_forms: ^17.0.0
+
+  # Pull-to-refresh en listas de pacientes (PB-14)
+  easy_refresh: ^3.4.0
+
+  # Shimmer de carga — skeleton screens mientras carga la historia clínica
+  shimmer: ^3.0.0
+
+  # Snackbars / toasts de confirmación y error
+  fluttertoast: ^8.2.12
+
+# =============================================================================
+# DEPENDENCIAS DE DESARROLLO
+# =============================================================================
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
-  flutter_lints: ^6.0.0
+  flutter_lints: ^5.0.0
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
+  # Generación de código para freezed y json_serializable
+  build_runner: ^2.4.15
+  freezed: ^3.0.0
+  json_serializable: ^6.9.5
 
-# The following section is specific to Flutter packages.
+  # Generación de providers Riverpod con anotaciones @riverpod
+  riverpod_annotation: ^4.0.2
+  riverpod_generator: ^4.0.3
+
+  # Mocks para tests unitarios
+  mockito: ^5.4.5
+
+# =============================================================================
+# CONFIGURACIÓN DE FLUTTER
+# =============================================================================
 flutter:
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  # Activa la generación automática de localizaciones (app_en.arb, app_es.arb)
+  generate: true
 
-  # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/to/resolution-aware-images
+  assets:
+    - assets/images/
+    - assets/icons/
 
-  # For details regarding adding assets from package dependencies, see
-  # https://flutter.dev/to/asset-from-package
-
-  # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
