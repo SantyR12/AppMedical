@@ -96,6 +96,8 @@ class PatientSearchState {
   final String query;
   final bool hasSearched;
 
+  bool get hasError => errorMessage != null;
+
   PatientSearchState copyWith({
     List<PatientModel>? results,
     bool? isLoading,

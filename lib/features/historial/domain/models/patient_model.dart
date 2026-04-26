@@ -19,7 +19,7 @@ enum Sex {
 
 /// Contacto de emergencia — campos opcionales (PB-10 criterio 2)
 @freezed
-class EmergencyContact with _$EmergencyContact {
+abstract class EmergencyContact with _$EmergencyContact {
   const factory EmergencyContact({
     String? nombre,
     String? telefono,
@@ -34,7 +34,7 @@ class EmergencyContact with _$EmergencyContact {
 /// Generar archivos con:
 /// dart run build_runner build --delete-conflicting-outputs
 @freezed
-class PatientModel with _$PatientModel {
+abstract class PatientModel with _$PatientModel {
   const factory PatientModel({
     required String id,
     required String nombreCompleto,
@@ -65,7 +65,7 @@ enum RecordStatus {
 
 /// Historia clínica completa (PB-09)
 @freezed
-class ClinicalRecordModel with _$ClinicalRecordModel {
+abstract class ClinicalRecordModel with _$ClinicalRecordModel {
   const factory ClinicalRecordModel({
     required String id,
     required String pacienteId,
@@ -89,7 +89,7 @@ class ClinicalRecordModel with _$ClinicalRecordModel {
 
 /// Request para crear nueva historia clínica (PB-09 criterio 1)
 @freezed
-class CreateClinicalRecordRequest with _$CreateClinicalRecordRequest {
+abstract class CreateClinicalRecordRequest with _$CreateClinicalRecordRequest {
   const factory CreateClinicalRecordRequest({
     required String nombreCompleto,
     required DocumentType tipoDocumento,
@@ -108,7 +108,7 @@ class CreateClinicalRecordRequest with _$CreateClinicalRecordRequest {
 
 /// Parámetros de búsqueda de pacientes (PB-14)
 @freezed
-class PatientSearchParams with _$PatientSearchParams {
+abstract class PatientSearchParams with _$PatientSearchParams {
   const factory PatientSearchParams({
     String? nombre,
     String? numeroDocumento,

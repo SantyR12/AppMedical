@@ -43,7 +43,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     // GUARD GLOBAL: redirige según el estado de autenticación
     // -------------------------------------------------------------------------
     redirect: (context, state) {
-      final authState = ref.read(authStateProvider);
+      final authState = ref.read(authStateProvider).state;
       final isOnAuthRoute = state.matchedLocation == AppRoutes.login ||
           state.matchedLocation == AppRoutes.register ||
           state.matchedLocation == AppRoutes.verifyEmail ||

@@ -27,7 +27,8 @@ enum AccountStatus {
 /// Después de editar este archivo ejecutar:
 /// dart run build_runner build --delete-conflicting-outputs
 @freezed
-class UserModel with _$UserModel {
+abstract class UserModel with _$UserModel {
+  const UserModel._();
   const factory UserModel({
     required String id,
     required String nombre,
@@ -44,7 +45,8 @@ class UserModel with _$UserModel {
 
 /// Payload que se envía al backend para crear un nuevo usuario (PB-01)
 @freezed
-class CreateUserRequest with _$CreateUserRequest {
+abstract class CreateUserRequest with _$CreateUserRequest {
+  const CreateUserRequest._();
   const factory CreateUserRequest({
     required String nombre,
     required String correo,
@@ -58,7 +60,8 @@ class CreateUserRequest with _$CreateUserRequest {
 
 /// Payload del login (PB-03)
 @freezed
-class LoginRequest with _$LoginRequest {
+abstract class LoginRequest with _$LoginRequest {
+  const LoginRequest._();
   const factory LoginRequest({
     required String correo,
     required String contrasena,
@@ -70,7 +73,8 @@ class LoginRequest with _$LoginRequest {
 
 /// Respuesta del login exitoso — incluye flag para saber si hay MFA pendiente
 @freezed
-class LoginResponse with _$LoginResponse {
+abstract class LoginResponse with _$LoginResponse {
+  const LoginResponse._();
   const factory LoginResponse({
     required bool requiresMfa,
     // Sólo presente si MFA ya fue completado (flujo sin MFA o Sprint 2)
@@ -85,7 +89,8 @@ class LoginResponse with _$LoginResponse {
 
 /// Respuesta del refresh token (PB-06)
 @freezed
-class RefreshResponse with _$RefreshResponse {
+abstract class RefreshResponse with _$RefreshResponse {
+  const RefreshResponse._();
   const factory RefreshResponse({
     required String accessToken,
   }) = _RefreshResponse;
@@ -93,3 +98,4 @@ class RefreshResponse with _$RefreshResponse {
   factory RefreshResponse.fromJson(Map<String, dynamic> json) =>
       _$RefreshResponseFromJson(json);
 }
+

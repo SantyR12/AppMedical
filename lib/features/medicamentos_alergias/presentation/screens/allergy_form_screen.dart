@@ -391,7 +391,7 @@ class _AllergyFormScreenState extends ConsumerState<AllergyFormScreen> {
       case AllergySeverity.grave:
         return Icons.dangerous_outlined;
       case AllergySeverity.mortal:
-        return Icons.skull_outlined;
+        return Icons.coronavirus_outlined;
     }
   }
 }

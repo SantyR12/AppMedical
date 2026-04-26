@@ -32,7 +32,8 @@ enum AllergyStatus {
 /// Generar archivos con:
 /// dart run build_runner build --delete-conflicting-outputs
 @freezed
-class AllergyModel with _$AllergyModel {
+abstract class AllergyModel with _$AllergyModel {
+  const AllergyModel._();
   const factory AllergyModel({
     required String id,
     required String pacienteId,
@@ -53,7 +54,8 @@ class AllergyModel with _$AllergyModel {
 
 /// Payload para registrar una nueva alergia (PB-20)
 @freezed
-class CreateAllergyRequest with _$CreateAllergyRequest {
+abstract class CreateAllergyRequest with _$CreateAllergyRequest {
+  const CreateAllergyRequest._();
   const factory CreateAllergyRequest({
     required String pacienteId,
     required String agenteCausante,
@@ -70,7 +72,8 @@ class CreateAllergyRequest with _$CreateAllergyRequest {
 /// Modelo de medicamento — usado en el autocompletado de alergias y
 /// en prescripciones (PB-15, PB-20 criterio 4, misma base de datos)
 @freezed
-class MedicationModel with _$MedicationModel {
+abstract class MedicationModel with _$MedicationModel {
+  const MedicationModel._();
   const factory MedicationModel({
     required String id,
     required String nombreGenerico,
@@ -81,3 +84,4 @@ class MedicationModel with _$MedicationModel {
   factory MedicationModel.fromJson(Map<String, dynamic> json) =>
       _$MedicationModelFromJson(json);
 }
+

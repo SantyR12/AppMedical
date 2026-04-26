@@ -127,7 +127,7 @@ class SgpTheme {
       ),
 
       // Card
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: SgpColors.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
