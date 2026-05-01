@@ -24,8 +24,8 @@ class SessionIndicator extends ConsumerWidget {
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
       data: (minutes) {
-        // Solo mostrar aviso si quedan menos de 10 minutos
-        if (minutes > 10) return const SizedBox.shrink();
+        // Solo mostrar aviso si quedan menos de 10 minutos (COMENTADO PARA PRUEBAS)
+        // if (minutes > 10) return const SizedBox.shrink();
 
         return Padding(
           padding: const EdgeInsets.only(right: 8),
