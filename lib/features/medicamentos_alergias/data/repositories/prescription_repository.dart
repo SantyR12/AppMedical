@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:sgp_app/core/dio_client.dart';
-import 'package:sgp_app/features/medicamentos_alergias/domain/models/allergy_model.dart';
-import 'package:sgp_app/features/medicamentos_alergias/domain/models/prescription_model.dart';
+import '../../../../core/dio_client.dart';
+import '../../domain/domain/models/allergy_model.dart';
+import '../../domain/domain/models/prescription_model.dart';
 
 // ─── INTERFAZ ────────────────────────────────────────────────────────────────
 

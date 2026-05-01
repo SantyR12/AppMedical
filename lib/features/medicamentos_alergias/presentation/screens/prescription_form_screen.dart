@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 
-import 'package:sgp_app/shared/widgets/sgp_text_field.dart';
-import 'package:sgp_app/features/medicamentos_alergias/data/repositories/prescription_repository.dart';
-import 'package:sgp_app/features/medicamentos_alergias/domain/models/allergy_model.dart';
-import 'package:sgp_app/features/medicamentos_alergias/domain/models/prescription_model.dart';
-import 'package:sgp_app/features/medicamentos_alergias/providers/allergy_provider.dart';
+import '../../../../shared/widgets/sgp_text_field.dart';
+import '../../data/repositories/prescription_repository.dart';
+import '../../domain/models/allergy_model.dart';
+import '../../domain/models/prescription_model.dart';
+import '../../providers/allergy_provider.dart';
 
 /// PB-15 · Generación de prescripciones digitales.
 ///
