@@ -60,7 +60,11 @@ class PrescriptionModel with _$PrescriptionModel {
 
 /// Request para crear una prescripción
 @freezed
+<<<<<<< HEAD
+abstract class CreatePrescriptionRequest with _$CreatePrescriptionRequest {
+=======
 class CreatePrescriptionRequest with _$CreatePrescriptionRequest {
+>>>>>>> c81fde21c7bda73a19ef1e3b9277756952a9fe52
   const factory CreatePrescriptionRequest({
     required String pacienteId,
     required String medicamentoId,
@@ -79,7 +83,11 @@ class CreatePrescriptionRequest with _$CreatePrescriptionRequest {
 
 /// Alerta de duplicidad — PB-15 criterio 2
 @freezed
+<<<<<<< HEAD
+abstract class DuplicityAlert with _$DuplicityAlert {
+=======
 class DuplicityAlert with _$DuplicityAlert {
+>>>>>>> c81fde21c7bda73a19ef1e3b9277756952a9fe52
   const factory DuplicityAlert({
     required bool hasDuplicity,
     String? existingPrescriptionId,
@@ -92,7 +100,11 @@ class DuplicityAlert with _$DuplicityAlert {
 
 /// Alerta de alergia — PB-15 criterio 3
 @freezed
+<<<<<<< HEAD
+abstract class AllergyAlert with _$AllergyAlert {
+=======
 class AllergyAlert with _$AllergyAlert {
+>>>>>>> c81fde21c7bda73a19ef1e3b9277756952a9fe52
   const factory AllergyAlert({
     required bool hasAllergy,
     String? allergyId,
