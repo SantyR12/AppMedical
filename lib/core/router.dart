@@ -2,11 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../features/auth/presentation/screens/login_screen.dart';
-import '../features/auth/presentation/screens/register_screen.dart';
-import '../features/auth/presentation/screens/verify_email_screen.dart';
-import '../features/auth/presentation/screens/mfa_screen.dart';
-import '../features/auth/providers/auth_provider.dart';
+import 'package:sgp_app/features/auth/presentation/screens/login_screen.dart';
+import 'package:sgp_app/features/auth/presentation/screens/register_screen.dart';
+import 'package:sgp_app/features/auth/presentation/screens/verify_email_screen.dart';
+import 'package:sgp_app/features/auth/presentation/screens/mfa_screen.dart';
+import 'package:sgp_app/features/auth/presentation/screens/new_patient_screen.dart';
+import 'package:sgp_app/features/auth/providers/auth_provider.dart';
+
+import 'package:sgp_app/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:sgp_app/features/historial/presentation/screens/patient_search_screen.dart';
+import 'package:sgp_app/features/historial/presentation/screens/patient_detail_screen.dart';
+import 'package:sgp_app/features/medicamentos_alergias/presentation/screens/allergy_form_screen.dart';
+import 'package:sgp_app/features/medicamentos_alergias/presentation/screens/prescription_form_screen.dart';
 
 /// Rutas nombradas de la app — usar siempre estas constantes,
 /// nunca strings sueltos.
@@ -98,12 +105,46 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // -----------------------------------------------------------------------
-      // DASHBOARD — placeholder hasta Sprint 2
+      // DASHBOARD & PACIENTES
       // -----------------------------------------------------------------------
       GoRoute(
         path: AppRoutes.dashboard,
         name: 'dashboard',
-        builder: (context, state) => const _DashboardPlaceholder(),
+        builder: (context, state) => const DashboardScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.patients,
+        name: 'patients',
+        builder: (context, state) => const PatientSearchScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.newPatient,
+        name: 'newPatient',
+        builder: (context, state) => const NewPatientScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.patientDetail,
+        name: 'patientDetail',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return PatientDetailScreen(pacienteId: id);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.allergies,
+        name: 'allergies',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return AllergyFormScreen(pacienteId: id);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.prescriptions,
+        name: 'prescriptions',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return PrescriptionFormScreen(pacienteId: id);
+        },
       ),
     ],
 
@@ -116,17 +157,3 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
 });
 
-/// Placeholder del dashboard — se reemplaza en Sprint 2 con la pantalla real
-class _DashboardPlaceholder extends StatelessWidget {
-  const _DashboardPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('SGP — Dashboard')),
-      body: const Center(
-        child: Text('Dashboard — Sprint 2'),
-      ),
-    );
-  }
-}
