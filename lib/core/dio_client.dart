@@ -8,7 +8,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 ///
 /// Para pruebas locales con Android emulator usar: http://10.0.2.2:3000
 /// Para pruebas locales con dispositivo físico usar: http://TU_IP_LOCAL:3000
-const String kBaseUrl = 'http://10.0.2.2:3000/api';
+const String kBaseUrl = 'http://localhost:3000/api';
 
 /// Claves usadas en flutter_secure_storage
 const String kAccessTokenKey = 'sgp_access_token';

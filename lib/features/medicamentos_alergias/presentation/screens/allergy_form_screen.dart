@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 
-import '../../../../shared/widgets/sgp_text_field.dart';
-import '../../domain/models/allergy_model.dart';
-import '../../providers/allergy_provider.dart';
+import 'package:sgp_app/shared/widgets/sgp_text_field.dart';
+import 'package:sgp_app/features/medicamentos_alergias/domain/models/allergy_model.dart';
+import 'package:sgp_app/features/medicamentos_alergias/providers/allergy_provider.dart';
 
 /// PB-20: Formulario de registro de alergias.
 ///

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sgp_app/core/router.dart';
 
 import '../../domain/models/patient_model.dart';
 import '../../providers/historial_provider.dart';
@@ -41,9 +43,7 @@ class _PatientSearchScreenState extends ConsumerState<PatientSearchScreen> {
           IconButton(
             icon: const Icon(Icons.person_add_outlined),
             tooltip: 'Nuevo paciente',
-            onPressed: () {
-              // TODO: navegar a NewPatientScreen (PB-10) en días siguientes
-            },
+            onPressed: () => context.push(AppRoutes.newPatient),
           ),
         ],
         // Campo de búsqueda en el AppBar
@@ -214,8 +214,7 @@ class _PatientCard extends StatelessWidget {
         ),
         trailing: const Icon(Icons.chevron_right),
         onTap: () {
-          // TODO: navegar a PatientDetailScreen con el ID del paciente
-          // context.push('/patients/${patient.id}');
+          context.push(AppRoutes.patientDetail.replaceAll(':id', patient.id));
         },
       ),
     );
