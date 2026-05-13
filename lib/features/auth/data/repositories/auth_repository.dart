@@ -187,6 +187,18 @@ class AuthRepository implements IAuthRepository {
         return Exception('Ya existe un usuario con ese correo');
       case 422:
         return Exception('Datos inválidos. Verificar el formulario.');
+      case 423:
+        // PB-05: cuenta bloqueada tras 5 intentos fallidos
+        final until = e.response?.data?['bloqueadoHasta'] as String?;
+        if (until != null) {
+          final dt = DateTime.tryParse(until);
+          final minutos = dt != null
+              ? dt.difference(DateTime.now()).inMinutes + 1
+              : 30;
+          return Exception(
+              'Cuenta bloqueada. Intente de nuevo en $minutos minuto(s).');
+        }
+        return Exception('Cuenta bloqueada temporalmente. Intente más tarde.');
       case 429:
         return Exception('Demasiados intentos. Espere unos minutos.');
       case null:

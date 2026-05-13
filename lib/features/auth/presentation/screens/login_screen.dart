@@ -36,6 +36,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
+  bool _esBloqueada(String? msg) =>
+      msg != null && msg.toLowerCase().contains('bloqueada');
+
   Future<void> _submit() async {
     // Ocultar teclado
     FocusScope.of(context).unfocus();
@@ -160,7 +163,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                       // Botón ingresar
                       ElevatedButton(
-                        onPressed: actionState.isLoading ? null : _submit,
+                        onPressed: (actionState.isLoading ||
+                                _esBloqueada(actionState.errorMessage))
+                            ? null
+                            : _submit,
                         child: actionState.isLoading
                             ? const SizedBox(
                                 height: 20,
