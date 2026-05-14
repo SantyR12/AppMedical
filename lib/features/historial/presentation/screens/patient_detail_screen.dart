@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/router.dart';
 import '../../../../shared/widgets/sgp_text_field.dart';
 import '../../../medicamentos_alergias/domain/models/allergy_model.dart';
 import '../../../medicamentos_alergias/providers/allergy_provider.dart';
@@ -187,8 +189,9 @@ class PatientDetailScreen extends ConsumerWidget {
             title: 'Historial de consultas',
             icon: Icons.history_outlined,
             badge: record.consultasPreviasIds.length,
-            child: _EmptyModuleMessage(
-              message: 'Historial de consultas — Sprint 2 (PB-12)',
+            child: _ConsultationHistoryLink(
+              pacienteId: pacienteId,
+              historiaClinicaId: record.id,
             ),
           ),
         ],
@@ -541,6 +544,35 @@ class _AllergyList extends StatelessWidget {
           ],
         ),
       )).toList(),
+    );
+  }
+}
+
+// =============================================================================
+// PB-12: Navegación al historial de consultas
+// =============================================================================
+
+class _ConsultationHistoryLink extends StatelessWidget {
+  const _ConsultationHistoryLink({
+    required this.pacienteId,
+    required this.historiaClinicaId,
+  });
+
+  final String pacienteId;
+  final String historiaClinicaId;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: const Icon(Icons.open_in_new, size: 20),
+      title: const Text('Ver historial de consultas',
+          style: TextStyle(fontSize: 14)),
+      onTap: () => context.push(
+        AppRoutes.consultationHistory
+            .replaceFirst(':id', pacienteId)
+            .replaceFirst(':hcId', historiaClinicaId),
+      ),
     );
   }
 }
