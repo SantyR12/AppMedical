@@ -181,8 +181,9 @@ class PatientDetailScreen extends ConsumerWidget {
             title: 'Diagnósticos',
             icon: Icons.local_hospital_outlined,
             badge: record.diagnosticosIds.length,
-            child: _EmptyModuleMessage(
-              message: 'Diagnósticos — Sprint 2 (PB-23)',
+            child: _DiagnosticosLink(
+              pacienteId: pacienteId,
+              historiaClinicaId: record.id,
             ),
           ),
           _CollapsibleSection(
@@ -544,6 +545,33 @@ class _AllergyList extends StatelessWidget {
           ],
         ),
       )).toList(),
+    );
+  }
+}
+
+// =============================================================================
+// PB-26: Navegación a la lista de problemas activos
+// =============================================================================
+
+class _DiagnosticosLink extends StatelessWidget {
+  const _DiagnosticosLink({
+    required this.pacienteId,
+    required this.historiaClinicaId,
+  });
+
+  final String pacienteId;
+  final String historiaClinicaId;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: const Icon(Icons.open_in_new, size: 20),
+      title: const Text('Ver lista de problemas activos',
+          style: TextStyle(fontSize: 14)),
+      onTap: () => context.push(
+        '${AppRoutes.diagnosticos.replaceFirst(':id', pacienteId)}?hcId=$historiaClinicaId',
+      ),
     );
   }
 }
