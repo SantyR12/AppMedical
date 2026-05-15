@@ -1,7 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'prescription_model.dart';
-
 part 'mar_model.freezed.dart';
 part 'mar_model.g.dart';
 
@@ -23,7 +21,7 @@ abstract class MarEntryModel with _$MarEntryModel {
     String? administradoPor,
     @Default(ResultadoAdministracion.administrado) ResultadoAdministracion resultado,
     String? dosisAdministrada,
-    ViaAdministracion? viaAdministrada,
+    String? viaAdministrada,
     String? observaciones,
     DateTime? creadoEn,
     String? nombreMedicamento,
@@ -41,7 +39,7 @@ abstract class RegisterMarEntryRequest with _$RegisterMarEntryRequest {
     required DateTime horaReal,
     required ResultadoAdministracion resultado,
     String? dosisAdministrada,
-    ViaAdministracion? viaAdministrada,
+    String? viaAdministrada,
     String? observaciones,
   }) = _RegisterMarEntryRequest;
 

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../domain/models/mar_model.dart';
-import '../../domain/models/prescription_model.dart';
 import '../../providers/prescription_provider.dart';
 
 class MarScreen extends ConsumerWidget {
