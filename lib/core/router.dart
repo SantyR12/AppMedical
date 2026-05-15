@@ -12,6 +12,8 @@ import 'package:sgp_app/features/auth/providers/auth_provider.dart';
 import 'package:sgp_app/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:sgp_app/features/historial/presentation/screens/patient_search_screen.dart';
 import 'package:sgp_app/features/historial/presentation/screens/patient_detail_screen.dart';
+import 'package:sgp_app/features/historial/presentation/screens/consultation_history_screen.dart';
+import 'package:sgp_app/features/historial/presentation/screens/soap_note_form_screen.dart';
 import 'package:sgp_app/features/medicamentos_alergias/presentation/screens/allergy_form_screen.dart';
 import 'package:sgp_app/features/medicamentos_alergias/presentation/screens/prescription_form_screen.dart';
 
@@ -32,6 +34,8 @@ class AppRoutes {
   static const patientDetail = '/patients/:id';
   static const allergies = '/patients/:id/allergies';
   static const prescriptions = '/patients/:id/prescriptions';
+  static const consultationHistory = '/patients/:id/historial/:hcId';
+  static const soapNoteForm = '/patients/:id/historial/:hcId/nueva-nota';
 }
 
 /// Provider del router. Al observar [authStateProvider], go_router
@@ -144,6 +148,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
           return PrescriptionFormScreen(pacienteId: id);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.consultationHistory,
+        name: 'consultationHistory',
+        builder: (context, state) {
+          final id   = state.pathParameters['id'] ?? '';
+          final hcId = state.pathParameters['hcId'] ?? '';
+          return ConsultationHistoryScreen(
+              pacienteId: id, historiaClinicaId: hcId);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.soapNoteForm,
+        name: 'soapNoteForm',
+        builder: (context, state) {
+          final id   = state.pathParameters['id'] ?? '';
+          final hcId = state.pathParameters['hcId'] ?? '';
+          return SoapNoteFormScreen(
+              pacienteId: id, historiaClinicaId: hcId);
         },
       ),
     ],
