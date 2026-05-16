@@ -5,6 +5,8 @@ import '../../../../core/dio_client.dart';
 import '../../domain/models/allergy_model.dart';
 import '../../domain/models/prescription_model.dart';
 
+import '../../domain/models/mar_model.dart';
+
 // ─── INTERFAZ ────────────────────────────────────────────────────────────────
 
 abstract class IPrescriptionRepository {
@@ -141,5 +143,46 @@ class PrescriptionRepository implements IPrescriptionRepository {
 
 final prescriptionRepositoryProvider =
     Provider<IPrescriptionRepository>((ref) {
+  return PrescriptionRepository(dio: ref.watch(dioClientProvider));
+});
+
+
+class PrescriptionRepository {
+  PrescriptionRepository({required this.dio});
+  final Dio dio;
+
+  // PB-16: Listar medicamentos activos e históricos del paciente
+  Future<List<PrescriptionModel>> getByPatient(String pacienteId) async {
+    final response = await dio.get('/prescripciones/paciente/$pacienteId');
+    final list = response.data as List<dynamic>;
+    return list.map((e) => PrescriptionModel.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  // PB-17/21: Crear prescripción — el backend valida duplicados y alergias
+  Future<PrescriptionModel> create(CreatePrescriptionRequest request) async {
+    final response = await dio.post('/prescripciones', data: request.toJson());
+    return PrescriptionModel.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  Future<PrescriptionModel> suspend(String id) async {
+    final response = await dio.patch('/prescripciones/$id/suspender');
+    return PrescriptionModel.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  // PB-19: Listar entradas MAR del paciente
+  Future<List<MarEntryModel>> getMarEntries(String pacienteId) async {
+    final response = await dio.get('/mar/paciente/$pacienteId');
+    final list = response.data as List<dynamic>;
+    return list.map((e) => MarEntryModel.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  // PB-19: Registrar administración
+  Future<MarEntryModel> registerAdministration(RegisterMarEntryRequest request) async {
+    final response = await dio.post('/mar', data: request.toJson());
+    return MarEntryModel.fromJson(response.data as Map<String, dynamic>);
+  }
+}
+
+final prescriptionRepositoryProvider = Provider<PrescriptionRepository>((ref) {
   return PrescriptionRepository(dio: ref.watch(dioClientProvider));
 });
