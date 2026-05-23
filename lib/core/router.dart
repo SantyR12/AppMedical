@@ -9,7 +9,9 @@ import 'package:sgp_app/features/auth/presentation/screens/mfa_screen.dart';
 import 'package:sgp_app/features/auth/presentation/screens/new_patient_screen.dart';
 import 'package:sgp_app/features/auth/providers/auth_provider.dart';
 
+import 'package:sgp_app/features/auth/domain/models/user_model.dart';
 import 'package:sgp_app/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:sgp_app/features/dashboard/presentation/screens/admin_dashboard_screen.dart';
 import 'package:sgp_app/features/historial/presentation/screens/patient_search_screen.dart';
 import 'package:sgp_app/features/historial/presentation/screens/patient_detail_screen.dart';
 import 'package:sgp_app/features/historial/presentation/screens/consultation_history_screen.dart';
@@ -29,6 +31,7 @@ class AppRoutes {
   static const mfa = '/mfa';
 
   // Sprint 2 — se añadirán cuando Santiago y Paulo suban sus módulos
+  static const adminDashboard = '/admin';
   static const dashboard = '/dashboard';
   static const patients = '/patients';
   static const newPatient = '/patients/new';
@@ -53,32 +56,44 @@ final routerProvider = Provider<GoRouter>((ref) {
     debugLogDiagnostics: true, // útil en desarrollo, quitar en producción
 
     // -------------------------------------------------------------------------
-    // GUARD GLOBAL: redirige según el estado de autenticación
+    // GUARD GLOBAL: redirige según el estado de autenticación y rol
     // -------------------------------------------------------------------------
     redirect: (context, state) {
       final authState = ref.read(authStateProvider).state;
-      final isOnAuthRoute = state.matchedLocation == AppRoutes.login ||
-          state.matchedLocation == AppRoutes.register ||
-          state.matchedLocation == AppRoutes.verifyEmail ||
-          state.matchedLocation == AppRoutes.mfa;
+      final loc = state.matchedLocation;
+      final role = authState.user?.rol;
 
-      // Sin sesión → siempre al login
-      if (!authState.isAuthenticated && !isOnAuthRoute) {
-        return AppRoutes.login;
-      }
-
-      // Con sesión válida → no dejar entrar a rutas de auth
-      if (authState.isAuthenticated && isOnAuthRoute) {
-        return AppRoutes.dashboard;
-      }
-
-      // En espera de MFA → forzar pantalla MFA
-      if (authState.pendingMfa &&
-          state.matchedLocation != AppRoutes.mfa) {
+      // MFA pendiente → forzar pantalla MFA
+      if (authState.pendingMfa && loc != AppRoutes.mfa) {
         return AppRoutes.mfa;
       }
 
-      return null; // sin redirección
+      final isPublicRoute = loc == AppRoutes.login ||
+          loc == AppRoutes.verifyEmail ||
+          loc == AppRoutes.mfa;
+
+      // Sin sesión activa → solo rutas públicas
+      if (!authState.isAuthenticated && !isPublicRoute) {
+        return AppRoutes.login;
+      }
+
+      // Con sesión → salir de cualquier pantalla de auth
+      if (authState.isAuthenticated &&
+          (loc == AppRoutes.login ||
+           loc == AppRoutes.mfa ||
+           loc == AppRoutes.verifyEmail)) {
+        return role == UserRole.admin
+            ? AppRoutes.adminDashboard
+            : AppRoutes.dashboard;
+      }
+
+      // /register y /admin → solo admins autenticados
+      if (loc == AppRoutes.register || loc == AppRoutes.adminDashboard) {
+        if (!authState.isAuthenticated) return AppRoutes.login;
+        if (role != UserRole.admin) return AppRoutes.dashboard;
+      }
+
+      return null;
     },
 
     routes: [
@@ -113,6 +128,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       // -----------------------------------------------------------------------
       // DASHBOARD & PACIENTES
       // -----------------------------------------------------------------------
+      GoRoute(
+        path: AppRoutes.adminDashboard,
+        name: 'adminDashboard',
+        builder: (context, state) => const AdminDashboardScreen(),
+      ),
       GoRoute(
         path: AppRoutes.dashboard,
         name: 'dashboard',

@@ -1,10 +1,4 @@
-// =============================================================================
-// SAMUEL GUERRERO — Tests Auth y Seguridad
-// APA-34 (T-01) · APA-35 (T-02) · APA-36 (T-03)
-// Day 5 — Jueves 15 Mayo
-// Ejecutar: flutter test test/samuel/samuel_auth_test.dart
-// Generar mocks: dart run build_runner build --delete-conflicting-outputs
-// =============================================================================
+
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
@@ -96,4 +90,5 @@ void main() {
       expect(notifier.state.pendingMfa, isFalse);
     });
   });
+
 }

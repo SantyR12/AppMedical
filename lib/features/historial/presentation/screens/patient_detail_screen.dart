@@ -78,11 +78,11 @@ class PatientDetailScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: _buildBody(context, state),
+      body: _buildBody(context, state, allergyState),
     );
   }
 
-  Widget _buildBody(BuildContext context, HistorialState state) {
+  Widget _buildBody(BuildContext context, HistorialState state, AllergyListState allergyState) {
     if (state.isLoading) return const _HistorialShimmer();
 
     if (state.hasError) {
