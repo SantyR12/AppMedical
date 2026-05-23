@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
+import 'package:sgp_app/features/auth/domain/models/user_model.dart';
 import 'package:sgp_app/features/historial/domain/models/patient_model.dart';
 import 'package:sgp_app/features/historial/domain/repositories/historial_repository_interface.dart';
 import 'package:sgp_app/features/historial/providers/historial_provider.dart';
@@ -17,6 +18,7 @@ import 'santiago_historial_test.mocks.dart';
 void main() {
   late MockIHistorialRepository mockRepo;
   late HistorialNotifier notifier;
+  late PatientSearchNotifier searchNotifier;
 
   final pacientePrueba = PatientModel(
     id: 'pac-001',
@@ -41,6 +43,7 @@ void main() {
   setUp(() {
     mockRepo = MockIHistorialRepository();
     notifier = HistorialNotifier(mockRepo);
+    searchNotifier = PatientSearchNotifier(mockRepo);
   });
 
   // APA-39 — T-06
@@ -131,18 +134,18 @@ void main() {
     test('retorna el paciente correcto al buscar por documento exacto', () async {
       when(mockRepo.searchPatients(any)).thenAnswer((_) async => [pacientePrueba]);
 
-      await notifier.searchPatients(PatientSearchParams(numeroDocumento: '1023456789'));
+      await searchNotifier.search('1023456789');
 
-      expect(notifier.state.searchResults, hasLength(1));
-      expect(notifier.state.searchResults.first.numeroDocumento, '1023456789');
+      expect(searchNotifier.state.results, hasLength(1));
+      expect(searchNotifier.state.results.first.numeroDocumento, '1023456789');
     });
 
     test('retorna lista vacía cuando el documento no existe', () async {
       when(mockRepo.searchPatients(any)).thenAnswer((_) async => []);
 
-      await notifier.searchPatients(PatientSearchParams(numeroDocumento: '9999999999'));
+      await searchNotifier.search('9999999999');
 
-      expect(notifier.state.searchResults, isEmpty);
+      expect(searchNotifier.state.results, isEmpty);
     });
   });
 
@@ -168,19 +171,19 @@ void main() {
         ).toList(),
       );
 
-      await notifier.searchPatients(PatientSearchParams(nombre: 'Juan'));
+      await searchNotifier.search('Juan');
 
-      expect(notifier.state.searchResults, hasLength(2));
-      expect(notifier.state.searchResults.every((p) => p.nombreCompleto.contains('Juan')), isTrue);
+      expect(searchNotifier.state.results, hasLength(2));
+      expect(searchNotifier.state.results.every((p) => p.nombreCompleto.contains('Juan')), isTrue);
     });
 
     test('búsqueda con query vacío no llama al repositorio', () async {
-      await notifier.searchPatients(PatientSearchParams(nombre: ''));
+      await searchNotifier.search('');
       verifyNever(mockRepo.searchPatients(any));
     });
 
     test('búsqueda con menos de 3 caracteres no dispara la petición', () async {
-      await notifier.searchPatients(PatientSearchParams(nombre: 'Ju'));
+      await searchNotifier.search('Ju');
       verifyNever(mockRepo.searchPatients(any));
     });
   });

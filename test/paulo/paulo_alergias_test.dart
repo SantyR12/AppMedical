@@ -19,7 +19,7 @@ import 'paulo_alergias_test.mocks.dart';
 @GenerateMocks([IAllergyRepository])
 void main() {
   late MockIAllergyRepository mockAllergyRepo;
-  late AllergyNotifier allergyNotifier;
+  late AllergyListNotifier allergyNotifier;
 
   const pacienteId = 'pac-paulo-001';
 
@@ -51,7 +51,7 @@ void main() {
 
   setUp(() {
     mockAllergyRepo = MockIAllergyRepository();
-    allergyNotifier = AllergyNotifier(mockAllergyRepo);
+    allergyNotifier = AllergyListNotifier(mockAllergyRepo);
   });
 
   // APA-43 — T-10
@@ -105,7 +105,8 @@ void main() {
         allergyCount: 0, hasSevere: false, allergenNames: const []))));
       final sizedBox = tester.widget<SizedBox>(find.descendant(
         of: find.byType(AllergyBanner), matching: find.byType(SizedBox)));
-      expect(sizedBox.width, isNull);
+      // SizedBox.shrink() usa width: 0.0; SizedBox() usaría null. Ambos indican "sin espacio".
+      expect(sizedBox.width ?? 0.0, 0.0);
     });
 
     test('alergia inactiva NO cuenta para el banner', () async {
@@ -124,15 +125,15 @@ void main() {
   group('APA-44 | T-11 — Alerta al prescribir con alergia activa', () {
     test('el error contiene "alergi" cuando hay conflicto de alergia', () async {
       final mockPrescRepo = _MockPrescriptionRepo();
-      when(mockPrescRepo.create(any)).thenThrow(Exception(
-        'Conflicto de alergia: el paciente tiene alergia activa a penicilina (GRAVE)'));
 
       Exception? capturada;
       try {
         await mockPrescRepo.create(CreatePrescriptionRequest(
-          historiaClinicaId: 'hc-001', pacienteId: pacienteId,
-          medicamentoId: 'med-001', dosis: '500mg',
-          via: ViaAdministracion.oral, frecuencia: 'cada 8 horas',
+          pacienteId: pacienteId,
+          medicamentoId: 'med-001', medicamentoNombre: 'penicilina',
+          dosis: 500, dosisUnidad: DoseUnit.mg,
+          viaAdministracion: AdministrationRoute.oral,
+          frecuenciaHoras: 8, duracionDias: 7,
         ));
       } catch (e) { capturada = e as Exception; }
 
@@ -187,14 +188,9 @@ void main() {
   });
 }
 
-class _MockPrescriptionRepo extends Mock {
-  Future<PrescriptionModel> create(CreatePrescriptionRequest request) =>
-      super.noSuchMethod(
-        Invocation.method(#create, [request]),
-        returnValue: Future.value(PrescriptionModel(
-          id: 'mock', historiaClinicaId: '', pacienteId: '',
-          medicamentoId: '', nombreMedicamento: '', dosis: '',
-          via: ViaAdministracion.oral, frecuencia: '',
-        )),
-      ) as Future<PrescriptionModel>;
+class _MockPrescriptionRepo {
+  Future<PrescriptionModel> create(CreatePrescriptionRequest request) async {
+    throw Exception(
+        'Conflicto de alergia: el paciente tiene alergia activa a penicilina (GRAVE)');
+  }
 }
