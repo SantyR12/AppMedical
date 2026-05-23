@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
+import 'token_store.dart';
+
 /// URL base del backend. Cambiar por la IP del servidor cuando el equipo
 /// levante el backend en Sprint 1.
 ///
@@ -66,7 +68,6 @@ class JwtInterceptor extends Interceptor {
     // Rutas públicas — no necesitan token
     final publicPaths = [
       '/auth/login',
-      '/auth/register',
       '/auth/verify-email',
       '/auth/refresh',
     ];
@@ -74,7 +75,7 @@ class JwtInterceptor extends Interceptor {
       return handler.next(options);
     }
 
-    String? accessToken = await storage.read(key: kAccessTokenKey);
+    String? accessToken = TokenStore.access ?? await storage.read(key: kAccessTokenKey);
 
     if (accessToken != null) {
       // Verificar si el token expira pronto
@@ -124,7 +125,7 @@ class JwtInterceptor extends Interceptor {
   /// Devuelve el nuevo token o null si falla.
   Future<String?> _refreshAccessToken() async {
     try {
-      final refreshToken = await storage.read(key: kRefreshTokenKey);
+      final refreshToken = TokenStore.refresh ?? await storage.read(key: kRefreshTokenKey);
       if (refreshToken == null) return null;
 
       final response = await dio.post(
@@ -135,6 +136,7 @@ class JwtInterceptor extends Interceptor {
       final newAccessToken = response.data['accessToken'] as String?;
       if (newAccessToken != null) {
         await storage.write(key: kAccessTokenKey, value: newAccessToken);
+        TokenStore.setAccess(newAccessToken);
       }
       return newAccessToken;
     } catch (_) {
@@ -145,5 +147,6 @@ class JwtInterceptor extends Interceptor {
   Future<void> _clearTokens() async {
     await storage.delete(key: kAccessTokenKey);
     await storage.delete(key: kRefreshTokenKey);
+    TokenStore.clear();
   }
 }
