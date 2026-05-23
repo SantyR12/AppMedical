@@ -18,6 +18,7 @@ import 'package:sgp_app/features/historial/presentation/screens/consultation_his
 import 'package:sgp_app/features/historial/presentation/screens/soap_note_form_screen.dart';
 import 'package:sgp_app/features/medicamentos_alergias/presentation/screens/allergy_form_screen.dart';
 import 'package:sgp_app/features/medicamentos_alergias/presentation/screens/prescription_form_screen.dart';
+import 'package:sgp_app/features/diagnosticos/presentation/screens/problem_list_screen.dart';
 
 /// Rutas nombradas de la app — usar siempre estas constantes,
 /// nunca strings sueltos.
@@ -39,6 +40,7 @@ class AppRoutes {
   static const prescriptions = '/patients/:id/prescriptions';
   static const consultationHistory = '/patients/:id/historial/:hcId';
   static const soapNoteForm = '/patients/:id/historial/:hcId/nueva-nota';
+  static const diagnosticos = '/patients/:id/diagnosticos';
 }
 
 /// Provider del router. Al observar [authStateProvider], go_router
@@ -187,6 +189,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           final id   = state.pathParameters['id'] ?? '';
           final hcId = state.pathParameters['hcId'] ?? '';
           return SoapNoteFormScreen(
+              pacienteId: id, historiaClinicaId: hcId);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.diagnosticos,
+        name: 'diagnosticos',
+        builder: (context, state) {
+          final id   = state.pathParameters['id'] ?? '';
+          final hcId = state.uri.queryParameters['hcId'] ?? '';
+          return ProblemListScreen(
               pacienteId: id, historiaClinicaId: hcId);
         },
       ),

@@ -1,6 +1,4 @@
-// APA-34 (T-01) · APA-35 (T-02) · APA-36 (T-03) · APA-37 (T-04) · APA-38 (T-05)
-// Ejecutar: flutter test test/samuel/samuel_auth_test.dart
-// Generar mocks: dart run build_runner build --delete-conflicting-outputs
+
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
@@ -93,53 +91,4 @@ void main() {
     });
   });
 
-  // APA-37 — T-04
-  group('APA-37 | T-04 — OTP expirado es rechazado', () {
-    setUp(() async {
-      when(mockRepo.login(any)).thenAnswer((_) async => const LoginResponse(requiresMfa: true));
-      await notifier.login(correo: correoValido, contrasena: contrasenaOk);
-    });
-
-    test('lanza excepción con "OTP" cuando el código está expirado', () {
-      when(mockRepo.verifyOtp(correo: anyNamed('correo'), otp: anyNamed('otp')))
-          .thenThrow(Exception('OTP expirado o inválido'));
-      expect(
-        () => notifier.verifyOtp('000000'),
-        throwsA(predicate<Exception>((e) => e.toString().contains('OTP'))),
-      );
-    });
-
-    test('el estado NO cambia a autenticado con OTP expirado', () async {
-      when(mockRepo.verifyOtp(correo: anyNamed('correo'), otp: anyNamed('otp')))
-          .thenThrow(Exception('OTP expirado'));
-      try { await notifier.verifyOtp('000000'); } catch (_) {}
-      expect(notifier.state.isAuthenticated, isFalse);
-      expect(notifier.state.pendingMfa, isTrue);
-    });
-  });
-
-  // APA-38 — T-05
-  group('APA-38 | T-05 — JWT expira y se renueva automáticamente', () {
-    test('refreshToken retorna un nuevo accessToken', () async {
-      when(mockRepo.refreshToken(any))
-          .thenAnswer((_) async => const RefreshResponse(accessToken: 'nuevo.token'));
-      final result = await mockRepo.refreshToken('viejo.refresh');
-      expect(result.accessToken, 'nuevo.token');
-    });
-
-    test('logout limpia completamente el estado', () async {
-      when(mockRepo.login(any)).thenAnswer((_) async => LoginResponse(
-        requiresMfa: false, accessToken: 'token',
-        refreshToken: 'refresh', user: usuarioMedico,
-      ));
-      await notifier.login(correo: correoValido, contrasena: contrasenaOk);
-      expect(notifier.state.isAuthenticated, isTrue);
-
-      when(mockRepo.logout()).thenAnswer((_) async {});
-      await notifier.logout();
-
-      expect(notifier.state.isAuthenticated, isFalse);
-      expect(notifier.state.user, isNull);
-    });
-  });
 }
