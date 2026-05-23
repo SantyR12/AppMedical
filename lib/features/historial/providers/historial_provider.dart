@@ -57,6 +57,20 @@ class HistorialNotifier extends StateNotifier<HistorialState> {
     }
   }
 
+  /// Crea una nueva historia clínica (PB-09 criterio 1)
+  Future<void> createRecord(CreateClinicalRecordRequest request) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      final record = await _repository.createRecord(request);
+      state = state.copyWith(record: record, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+      );
+    }
+  }
+
   /// Archiva la historia (nunca elimina — PB-09 criterio 5)
   Future<void> archiveRecord(String recordId) async {
     state = state.copyWith(isLoading: true);
