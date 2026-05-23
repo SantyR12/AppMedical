@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/router.dart';
 import '../../../../shared/utils/validators.dart';
 import '../../../../shared/widgets/sgp_text_field.dart';
 import '../../providers/auth_provider.dart';
@@ -35,6 +34,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     _contrasenaFocus.dispose();
     super.dispose();
   }
+
+  bool _esBloqueada(String? msg) =>
+      msg != null && msg.toLowerCase().contains('bloqueada');
 
   Future<void> _submit() async {
     // Ocultar teclado
@@ -160,7 +162,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                       // Botón ingresar
                       ElevatedButton(
-                        onPressed: actionState.isLoading ? null : _submit,
+                        onPressed: (actionState.isLoading ||
+                                _esBloqueada(actionState.errorMessage))
+                            ? null
+                            : _submit,
                         child: actionState.isLoading
                             ? const SizedBox(
                                 height: 20,
@@ -176,40 +181,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 32),
-
-                // Separador
-                Row(
-                  children: [
-                    Expanded(
-                        child: Divider(
-                            color: Theme.of(context).colorScheme.outlineVariant)),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text(
-                        'Administradores',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
-                      ),
-                    ),
-                    Expanded(
-                        child: Divider(
-                            color: Theme.of(context).colorScheme.outlineVariant)),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // Enlace a registro de nuevo usuario
-                Center(
-                  child: TextButton.icon(
-                    icon: const Icon(Icons.person_add_outlined, size: 18),
-                    label: const Text('Registrar nuevo usuario'),
-                    onPressed: () => context.go(AppRoutes.register),
-                  ),
-                ),
                 const SizedBox(height: 32),
               ],
             ),

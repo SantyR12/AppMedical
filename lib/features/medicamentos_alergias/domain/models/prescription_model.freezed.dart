@@ -225,8 +225,8 @@ return $default(_that.id,_that.pacienteId,_that.medicoId,_that.medicoNombre,_tha
 /// @nodoc
 @JsonSerializable()
 
-class _PrescriptionModel implements PrescriptionModel {
-  const _PrescriptionModel({required this.id, required this.pacienteId, required this.medicoId, required this.medicoNombre, required this.medicamentoId, required this.medicamentoNombre, required this.dosis, required this.dosisUnidad, required this.frecuenciaHoras, required this.viaAdministracion, required this.duracionDias, this.indicacionesEspeciales, this.estado = PrescriptionStatus.activa, this.fechaPrescripcion, this.firmaDigital, this.matriculaMedico});
+class _PrescriptionModel extends PrescriptionModel {
+  const _PrescriptionModel({required this.id, required this.pacienteId, required this.medicoId, required this.medicoNombre, required this.medicamentoId, required this.medicamentoNombre, required this.dosis, required this.dosisUnidad, required this.frecuenciaHoras, required this.viaAdministracion, required this.duracionDias, this.indicacionesEspeciales, this.estado = PrescriptionStatus.activa, this.fechaPrescripcion, this.firmaDigital, this.matriculaMedico}): super._();
   factory _PrescriptionModel.fromJson(Map<String, dynamic> json) => _$PrescriptionModelFromJson(json);
 
 @override final  String id;
@@ -528,8 +528,8 @@ return $default(_that.pacienteId,_that.medicamentoId,_that.medicamentoNombre,_th
 /// @nodoc
 @JsonSerializable()
 
-class _CreatePrescriptionRequest implements CreatePrescriptionRequest {
-  const _CreatePrescriptionRequest({required this.pacienteId, required this.medicamentoId, required this.medicamentoNombre, required this.dosis, required this.dosisUnidad, required this.frecuenciaHoras, required this.viaAdministracion, required this.duracionDias, this.indicacionesEspeciales});
+class _CreatePrescriptionRequest extends CreatePrescriptionRequest {
+  const _CreatePrescriptionRequest({required this.pacienteId, required this.medicamentoId, required this.medicamentoNombre, required this.dosis, required this.dosisUnidad, required this.frecuenciaHoras, required this.viaAdministracion, required this.duracionDias, this.indicacionesEspeciales}): super._();
   factory _CreatePrescriptionRequest.fromJson(Map<String, dynamic> json) => _$CreatePrescriptionRequestFromJson(json);
 
 @override final  String pacienteId;
@@ -809,8 +809,8 @@ return $default(_that.hasDuplicity,_that.existingPrescriptionId,_that.medicament
 /// @nodoc
 @JsonSerializable()
 
-class _DuplicityAlert implements DuplicityAlert {
-  const _DuplicityAlert({required this.hasDuplicity, this.existingPrescriptionId, this.medicamentoNombre});
+class _DuplicityAlert extends DuplicityAlert {
+  const _DuplicityAlert({required this.hasDuplicity, this.existingPrescriptionId, this.medicamentoNombre}): super._();
   factory _DuplicityAlert.fromJson(Map<String, dynamic> json) => _$DuplicityAlertFromJson(json);
 
 @override final  bool hasDuplicity;
@@ -1079,8 +1079,8 @@ return $default(_that.hasAllergy,_that.allergyId,_that.agenteCausante,_that.seve
 /// @nodoc
 @JsonSerializable()
 
-class _AllergyAlert implements AllergyAlert {
-  const _AllergyAlert({required this.hasAllergy, this.allergyId, this.agenteCausante, this.severidad});
+class _AllergyAlert extends AllergyAlert {
+  const _AllergyAlert({required this.hasAllergy, this.allergyId, this.agenteCausante, this.severidad}): super._();
   factory _AllergyAlert.fromJson(Map<String, dynamic> json) => _$AllergyAlertFromJson(json);
 
 @override final  bool hasAllergy;

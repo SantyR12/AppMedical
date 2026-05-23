@@ -3,10 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../domain/models/mar_model.dart';
-import '../../domain/models/prescription_model.dart';
 import '../../providers/prescription_provider.dart';
 
-// PB-19: MAR — Medication Administration Record
 class MarScreen extends ConsumerWidget {
   const MarScreen({super.key, required this.pacienteId});
   final String pacienteId;

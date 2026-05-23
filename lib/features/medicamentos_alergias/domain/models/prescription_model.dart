@@ -32,7 +32,8 @@ enum PrescriptionStatus {
 /// Generar archivos con:
 /// dart run build_runner build --delete-conflicting-outputs
 @freezed
-class PrescriptionModel with _$PrescriptionModel {
+abstract class PrescriptionModel with _$PrescriptionModel {
+  const PrescriptionModel._();
   const factory PrescriptionModel({
     required String id,
     required String pacienteId,
@@ -61,6 +62,7 @@ class PrescriptionModel with _$PrescriptionModel {
 /// Request para crear una prescripción
 @freezed
 abstract class CreatePrescriptionRequest with _$CreatePrescriptionRequest {
+  const CreatePrescriptionRequest._();
   const factory CreatePrescriptionRequest({
     required String pacienteId,
     required String medicamentoId,
@@ -80,6 +82,7 @@ abstract class CreatePrescriptionRequest with _$CreatePrescriptionRequest {
 /// Alerta de duplicidad — PB-15 criterio 2
 @freezed
 abstract class DuplicityAlert with _$DuplicityAlert {
+  const DuplicityAlert._();
   const factory DuplicityAlert({
     required bool hasDuplicity,
     String? existingPrescriptionId,
@@ -93,6 +96,7 @@ abstract class DuplicityAlert with _$DuplicityAlert {
 /// Alerta de alergia — PB-15 criterio 3
 @freezed
 abstract class AllergyAlert with _$AllergyAlert {
+  const AllergyAlert._();
   const factory AllergyAlert({
     required bool hasAllergy,
     String? allergyId,
