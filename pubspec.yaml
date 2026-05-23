@@ -97,6 +97,9 @@ dependencies:
   # Pull-to-refresh en listas de pacientes (PB-14)
   easy_refresh: ^3.4.0
 
+  # Selector de archivos (PDFs e imágenes) para adjuntos — PB-13
+  file_picker: ^8.0.0
+
   # Shimmer de carga — skeleton screens mientras carga la historia clínica
   shimmer: ^3.0.0
 
