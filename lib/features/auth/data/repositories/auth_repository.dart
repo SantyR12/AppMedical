@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../../core/dio_client.dart';
+import '../../../../core/token_store.dart';
 import '../../domain/models/user_model.dart';
 import '../../domain/repositories/auth_repository_interface.dart';
 
@@ -88,12 +89,14 @@ class AuthRepository implements IAuthRepository {
           key: kAccessTokenKey,
           value: loginResponse.accessToken,
         );
+        TokenStore.setAccess(loginResponse.accessToken);
       }
       if (loginResponse.refreshToken != null) {
         await storage.write(
           key: kRefreshTokenKey,
           value: loginResponse.refreshToken,
         );
+        TokenStore.setRefresh(loginResponse.refreshToken);
       }
       if (loginResponse.user != null) {
         await storage.write(
@@ -129,7 +132,7 @@ class AuthRepository implements IAuthRepository {
   @override
   Future<void> logout() async {
     try {
-      final refreshToken = await storage.read(key: kRefreshTokenKey);
+      final refreshToken = TokenStore.refresh ?? await storage.read(key: kRefreshTokenKey);
       if (refreshToken != null) {
         await dio.post(
           '/auth/logout',
@@ -137,10 +140,10 @@ class AuthRepository implements IAuthRepository {
         );
       }
     } finally {
-      // Siempre limpiar almacenamiento local, aunque el servidor falle
       await storage.delete(key: kAccessTokenKey);
       await storage.delete(key: kRefreshTokenKey);
       await storage.delete(key: kUserKey);
+      TokenStore.clear();
     }
   }
 
@@ -187,6 +190,18 @@ class AuthRepository implements IAuthRepository {
         return Exception('Ya existe un usuario con ese correo');
       case 422:
         return Exception('Datos inválidos. Verificar el formulario.');
+      case 423:
+        // PB-05: cuenta bloqueada tras 5 intentos fallidos
+        final until = e.response?.data?['bloqueadoHasta'] as String?;
+        if (until != null) {
+          final dt = DateTime.tryParse(until);
+          final minutos = dt != null
+              ? dt.difference(DateTime.now()).inMinutes + 1
+              : 30;
+          return Exception(
+              'Cuenta bloqueada. Intente de nuevo en $minutos minuto(s).');
+        }
+        return Exception('Cuenta bloqueada temporalmente. Intente más tarde.');
       case 429:
         return Exception('Demasiados intentos. Espere unos minutos.');
       case null:

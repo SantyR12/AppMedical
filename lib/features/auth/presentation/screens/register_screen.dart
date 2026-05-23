@@ -52,7 +52,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     final actionState = ref.read(registerActionProvider);
     if (actionState.isSuccess && mounted) {
-      // Mostrar confirmación y navegar a pantalla de verificación email (PB-02)
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -61,9 +60,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           backgroundColor: Theme.of(context).colorScheme.primary,
         ),
       );
-      context.go(
-        '${AppRoutes.verifyEmail}?email=${Uri.encodeComponent(_correoController.text.trim())}',
-      );
+      context.go(AppRoutes.adminDashboard);
     }
   }
 
@@ -76,7 +73,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         title: const Text('Registrar nuevo usuario'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go(AppRoutes.login),
+          onPressed: () => context.go(AppRoutes.adminDashboard),
         ),
       ),
       body: SafeArea(
@@ -178,7 +175,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
                 // Cancelar
                 OutlinedButton(
-                  onPressed: () => context.go(AppRoutes.login),
+                  onPressed: () => context.go(AppRoutes.adminDashboard),
                   child: const Text('Cancelar'),
                 ),
               ],
