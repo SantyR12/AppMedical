@@ -29,7 +29,7 @@ class AppConfig {
   // ┌─────────────────────────────────────────────────────┐
   // │  CAMBIAR AQUÍ PARA DEMO O PRODUCCIÓN               │
   // └─────────────────────────────────────────────────────┘
-  static const bool useMocks = true; // ← true = demo, false = backend real
+  static const bool useMocks = false; // ← true = demo, false = backend real
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
