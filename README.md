@@ -50,11 +50,7 @@ flutter run
 ### Correr TODOS los tests del sprint
 
 ```bash
-flutter test \
-  test/paulo/paulo_alergias_test.dart \
-  test/samuel/samuel_auth_test.dart \
-  test/santiago/santiago_historial_test.dart \
-  test/tests/samuel_auth_test.dart
+flutter test test/paulo/paulo_alergias_test.dart test/samuel/samuel_auth_test.dart test/santiago/santiago_historial_test.dart test/tests/samuel_auth_test.dart
 ```
 
 **Resultado esperado: 34/34 tests passed**
@@ -109,13 +105,7 @@ flutter test test/paulo/paulo_alergias_test.dart
 Para obtener la salida limpia que se muestra en los informes:
 
 ```bash
-# Todos los tests con salida detallada
-flutter test \
-  test/paulo/paulo_alergias_test.dart \
-  test/samuel/samuel_auth_test.dart \
-  test/santiago/santiago_historial_test.dart \
-  test/tests/samuel_auth_test.dart \
-  --reporter expanded 2>&1 | tee resultados_tests.txt
+flutter test test/paulo/paulo_alergias_test.dart test/samuel/samuel_auth_test.dart test/santiago/santiago_historial_test.dart test/tests/samuel_auth_test.dart --reporter expanded
 ```
 
 El archivo `resultados_tests.txt` queda en la raíz del proyecto con el log completo.
