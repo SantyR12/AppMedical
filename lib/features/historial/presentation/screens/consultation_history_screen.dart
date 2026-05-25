@@ -7,7 +7,7 @@ import '../../domain/models/soap_note_model.dart';
 import '../../providers/soap_note_provider.dart';
 
 /// PB-12: Historial de consultas — lista paginada de notas SOAP del paciente.
-class ConsultationHistoryScreen extends ConsumerWidget {
+class ConsultationHistoryScreen extends ConsumerStatefulWidget {
   const ConsultationHistoryScreen({
     super.key,
     required this.pacienteId,
@@ -18,15 +18,23 @@ class ConsultationHistoryScreen extends ConsumerWidget {
   final String historiaClinicaId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(soapNoteProvider);
+  ConsumerState<ConsultationHistoryScreen> createState() =>
+      _ConsultationHistoryScreenState();
+}
 
-    ref.listen(soapNoteProvider, (_, __) {});
+class _ConsultationHistoryScreenState
+    extends ConsumerState<ConsultationHistoryScreen> {
+  @override
+  void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (state.notes.isEmpty && !state.isLoading) {
-        ref.read(soapNoteProvider.notifier).loadNotes(pacienteId);
-      }
+      ref.read(soapNoteProvider.notifier).loadNotes(widget.pacienteId);
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(soapNoteProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -36,11 +44,11 @@ class ConsultationHistoryScreen extends ConsumerWidget {
         onPressed: () async {
           final added = await context.push<bool>(
             AppRoutes.soapNoteForm
-                .replaceFirst(':id', pacienteId)
-                .replaceFirst(':hcId', historiaClinicaId),
+                .replaceFirst(':id', widget.pacienteId)
+                .replaceFirst(':hcId', widget.historiaClinicaId),
           );
           if (added == true) {
-            ref.read(soapNoteProvider.notifier).loadNotes(pacienteId);
+            ref.read(soapNoteProvider.notifier).loadNotes(widget.pacienteId);
           }
         },
         icon: const Icon(Icons.add),

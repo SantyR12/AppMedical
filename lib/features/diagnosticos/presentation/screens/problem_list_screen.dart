@@ -5,7 +5,7 @@ import '../../domain/models/diagnosis_model.dart';
 import '../../providers/diagnosis_provider.dart';
 import 'diagnosis_form_screen.dart';
 
-class ProblemListScreen extends ConsumerWidget {
+class ProblemListScreen extends ConsumerStatefulWidget {
   const ProblemListScreen({
     super.key,
     required this.pacienteId,
@@ -15,20 +15,29 @@ class ProblemListScreen extends ConsumerWidget {
   final String historiaClinicaId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(diagnosisProvider);
+  ConsumerState<ProblemListScreen> createState() => _ProblemListScreenState();
+}
+
+class _ProblemListScreenState extends ConsumerState<ProblemListScreen> {
+  @override
+  void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (state.diagnoses.isEmpty && !state.isLoading) {
-        ref.read(diagnosisProvider.notifier).loadProblems(pacienteId);
-      }
+      ref.read(diagnosisProvider.notifier).loadProblems(widget.pacienteId);
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(diagnosisProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Lista de problemas')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.push(context, MaterialPageRoute(
           builder: (_) => DiagnosisFormScreen(
-            historiaClinicaId: historiaClinicaId,
-            pacienteId: pacienteId,
+            historiaClinicaId: widget.historiaClinicaId,
+            pacienteId: widget.pacienteId,
           ),
         )),
         icon: const Icon(Icons.add),
