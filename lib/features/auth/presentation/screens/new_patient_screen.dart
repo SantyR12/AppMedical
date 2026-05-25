@@ -178,7 +178,13 @@ class _NewPatientScreenState extends ConsumerState<NewPatientScreen> {
         title: const Text('Nuevo paciente'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.dashboard);
+            }
+          },
         ),
       ),
       body: SafeArea(
@@ -452,7 +458,13 @@ class _NewPatientScreenState extends ConsumerState<NewPatientScreen> {
                 ),
                 const FormGap(),
                 OutlinedButton(
-                  onPressed: () => context.pop(),
+                  onPressed: () {
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go(AppRoutes.dashboard);
+                    }
+                  },
                   child: const Text('Cancelar'),
                 ),
                 const SizedBox(height: 20),

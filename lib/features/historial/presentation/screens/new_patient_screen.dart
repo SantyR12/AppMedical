@@ -176,6 +176,16 @@ class _NewPatientScreenState extends ConsumerState<NewPatientScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Nuevo paciente'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/dashboard');
+            }
+          },
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -448,7 +458,13 @@ class _NewPatientScreenState extends ConsumerState<NewPatientScreen> {
                 ),
                 const FormGap(),
                 OutlinedButton(
-                  onPressed: () => context.pop(),
+                  onPressed: () {
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go('/dashboard');
+                    }
+                  },
                   child: const Text('Cancelar'),
                 ),
                 const SizedBox(height: 20),
