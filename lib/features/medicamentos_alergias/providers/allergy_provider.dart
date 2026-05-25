@@ -146,3 +146,15 @@ final medicationSuggestionsProvider =
   final repo = ref.watch(allergyRepositoryProvider);
   return repo.searchMedications(query);
 });
+
+// =============================================================================
+// PB-22: Banner de alergias activas en la historia clínica
+// =============================================================================
+
+/// Carga las alergias activas del paciente para mostrar el banner.
+final allergyBannerProvider =
+    FutureProvider.family<List<AllergyModel>, String>((ref, pacienteId) async {
+  final repo = ref.watch(allergyRepositoryProvider);
+  final all = await repo.getAllergiesByPatient(pacienteId);
+  return all.where((a) => a.estado == AllergyStatus.activa).toList();
+});

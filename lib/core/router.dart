@@ -2,23 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:sgp_app/features/admin/presentation/screens/admin_create_user_screen.dart';
+import 'package:sgp_app/features/admin/presentation/screens/admin_users_screen.dart';
+import 'package:sgp_app/features/auth/domain/models/user_model.dart';
 import 'package:sgp_app/features/auth/presentation/screens/login_screen.dart';
 import 'package:sgp_app/features/auth/presentation/screens/register_screen.dart';
 import 'package:sgp_app/features/auth/presentation/screens/verify_email_screen.dart';
 import 'package:sgp_app/features/auth/presentation/screens/mfa_screen.dart';
 import 'package:sgp_app/features/auth/presentation/screens/new_patient_screen.dart';
 import 'package:sgp_app/features/auth/providers/auth_provider.dart';
-
-import 'package:sgp_app/features/auth/domain/models/user_model.dart';
 import 'package:sgp_app/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:sgp_app/features/dashboard/presentation/screens/admin_dashboard_screen.dart';
+import 'package:sgp_app/features/diagnosticos/presentation/screens/problem_list_screen.dart';
 import 'package:sgp_app/features/historial/presentation/screens/patient_search_screen.dart';
 import 'package:sgp_app/features/historial/presentation/screens/patient_detail_screen.dart';
 import 'package:sgp_app/features/historial/presentation/screens/consultation_history_screen.dart';
 import 'package:sgp_app/features/historial/presentation/screens/soap_note_form_screen.dart';
+import 'package:sgp_app/features/historial/presentation/screens/soap_note_screen.dart';
+import 'package:sgp_app/features/historial/presentation/screens/diagnosis_screen.dart';
+import 'package:sgp_app/features/historial/presentation/screens/mar_screen.dart';
+import 'package:sgp_app/features/historial/presentation/screens/attachments_screen.dart';
 import 'package:sgp_app/features/medicamentos_alergias/presentation/screens/allergy_form_screen.dart';
 import 'package:sgp_app/features/medicamentos_alergias/presentation/screens/prescription_form_screen.dart';
-import 'package:sgp_app/features/diagnosticos/presentation/screens/problem_list_screen.dart';
 
 /// Rutas nombradas de la app — usar siempre estas constantes,
 /// nunca strings sueltos.
@@ -30,7 +35,6 @@ class AppRoutes {
   static const verifyEmail = '/verify-email';
   static const mfa = '/mfa';
 
-  // Sprint 2 — se añadirán cuando Santiago y Paulo suban sus módulos
   static const adminDashboard = '/admin';
   static const dashboard = '/dashboard';
   static const patients = '/patients';
@@ -38,26 +42,29 @@ class AppRoutes {
   static const patientDetail = '/patients/:id';
   static const allergies = '/patients/:id/allergies';
   static const prescriptions = '/patients/:id/prescriptions';
+
+  // Historial & notas
   static const consultationHistory = '/patients/:id/historial/:hcId';
   static const soapNoteForm = '/patients/:id/historial/:hcId/nueva-nota';
-  static const diagnosticos = '/patients/:id/diagnosticos';
+
+  // Nuevas pantallas Sprint 2
+  static const adminCreateUser = '/admin/crear-usuario';
+  static const adminUsers = '/admin/usuarios';
+  static const patientSoap = '/patients/:id/soap';
+  static const patientDiagnosticos = '/patients/:id/diagnosticos';
+  static const patientMar = '/patients/:id/mar';
+  static const patientAdjuntos = '/patients/:id/adjuntos';
 }
 
-/// Provider del router. Al observar [authStateProvider], go_router
-/// re-evalúa automáticamente el redirect cada vez que el estado de
-/// autenticación cambia (login, logout, token expirado).
+/// Provider del router.
 final routerProvider = Provider<GoRouter>((ref) {
-  // Listenable que activa la re-evaluación del redirect
   final authNotifier = ref.watch(authStateProvider.notifier);
 
   return GoRouter(
     initialLocation: AppRoutes.login,
     refreshListenable: authNotifier,
-    debugLogDiagnostics: true, // útil en desarrollo, quitar en producción
+    debugLogDiagnostics: true,
 
-    // -------------------------------------------------------------------------
-    // GUARD GLOBAL: redirige según el estado de autenticación y rol
-    // -------------------------------------------------------------------------
     redirect: (context, state) {
       final authState = ref.read(authStateProvider).state;
       final loc = state.matchedLocation;
@@ -77,29 +84,25 @@ final routerProvider = Provider<GoRouter>((ref) {
         return AppRoutes.login;
       }
 
-      // Con sesión → salir de cualquier pantalla de auth
-      if (authState.isAuthenticated &&
-          (loc == AppRoutes.login ||
-           loc == AppRoutes.mfa ||
-           loc == AppRoutes.verifyEmail)) {
+      // Con sesión → salir de pantallas de auth
+      if (authState.isAuthenticated && isPublicRoute) {
         return role == UserRole.admin
             ? AppRoutes.adminDashboard
             : AppRoutes.dashboard;
       }
 
-      // /register y /admin → solo admins autenticados
-      if (loc == AppRoutes.register || loc == AppRoutes.adminDashboard) {
-        if (!authState.isAuthenticated) return AppRoutes.login;
-        if (role != UserRole.admin) return AppRoutes.dashboard;
+      // /admin/* → solo admins
+      if (loc.startsWith('/admin') &&
+          authState.isAuthenticated &&
+          role != UserRole.admin) {
+        return AppRoutes.dashboard;
       }
 
       return null;
     },
 
     routes: [
-      // -----------------------------------------------------------------------
-      // MÓDULO AUTH — Samuel (PB-01, PB-02, PB-03, PB-04)
-      // -----------------------------------------------------------------------
+      // ── Auth ────────────────────────────────────────────────────────────────
       GoRoute(
         path: AppRoutes.login,
         name: 'login',
@@ -114,7 +117,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.verifyEmail,
         name: 'verifyEmail',
         builder: (context, state) {
-          // Recibe el email por queryParam para mostrarlo en la pantalla
           final email = state.uri.queryParameters['email'] ?? '';
           return VerifyEmailScreen(email: email);
         },
@@ -125,9 +127,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const MfaScreen(),
       ),
 
-      // -----------------------------------------------------------------------
-      // DASHBOARD & PACIENTES
-      // -----------------------------------------------------------------------
+      // ── Dashboard ────────────────────────────────────────────────────────────
       GoRoute(
         path: AppRoutes.adminDashboard,
         name: 'adminDashboard',
@@ -138,6 +138,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'dashboard',
         builder: (context, state) => const DashboardScreen(),
       ),
+
+      // ── Pacientes ────────────────────────────────────────────────────────────
       GoRoute(
         path: AppRoutes.patients,
         name: 'patients',
@@ -156,6 +158,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           return PatientDetailScreen(pacienteId: id);
         },
       ),
+
+      // ── Alergias & Prescripciones ────────────────────────────────────────────
       GoRoute(
         path: AppRoutes.allergies,
         name: 'allergies',
@@ -172,11 +176,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           return PrescriptionFormScreen(pacienteId: id);
         },
       ),
+
+      // ── Historial clínico (versiones del equipo) ─────────────────────────────
       GoRoute(
         path: AppRoutes.consultationHistory,
         name: 'consultationHistory',
         builder: (context, state) {
-          final id   = state.pathParameters['id'] ?? '';
+          final id = state.pathParameters['id'] ?? '';
           final hcId = state.pathParameters['hcId'] ?? '';
           return ConsultationHistoryScreen(
               pacienteId: id, historiaClinicaId: hcId);
@@ -186,25 +192,68 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.soapNoteForm,
         name: 'soapNoteForm',
         builder: (context, state) {
-          final id   = state.pathParameters['id'] ?? '';
+          final id = state.pathParameters['id'] ?? '';
           final hcId = state.pathParameters['hcId'] ?? '';
-          return SoapNoteFormScreen(
-              pacienteId: id, historiaClinicaId: hcId);
+          return SoapNoteFormScreen(pacienteId: id, historiaClinicaId: hcId);
+        },
+      ),
+
+      // ── Sprint 2: nuevas pantallas ────────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.adminCreateUser,
+        name: 'adminCreateUser',
+        builder: (context, state) => const AdminCreateUserScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminUsers,
+        name: 'adminUsers',
+        builder: (context, state) => const AdminUsersScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.patientSoap,
+        name: 'patientSoap',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          final historiaId = state.uri.queryParameters['historiaId'] ?? '';
+          return SoapNoteScreen(pacienteId: id, historiaClinicaId: historiaId);
         },
       ),
       GoRoute(
-        path: AppRoutes.diagnosticos,
-        name: 'diagnosticos',
+        path: AppRoutes.patientDiagnosticos,
+        name: 'patientDiagnosticos',
         builder: (context, state) {
-          final id   = state.pathParameters['id'] ?? '';
+          final id = state.pathParameters['id'] ?? '';
+          final historiaId = state.uri.queryParameters['historiaId'] ?? '';
+          return DiagnosisScreen(pacienteId: id, historiaClinicaId: historiaId);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.patientMar,
+        name: 'patientMar',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return MarScreen(pacienteId: id);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.patientAdjuntos,
+        name: 'patientAdjuntos',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return AttachmentsScreen(pacienteId: id);
+        },
+      ),
+      GoRoute(
+        path: '/patients/:id/diagnosticos-lista',
+        name: 'problemList',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
           final hcId = state.uri.queryParameters['hcId'] ?? '';
-          return ProblemListScreen(
-              pacienteId: id, historiaClinicaId: hcId);
+          return ProblemListScreen(pacienteId: id, historiaClinicaId: hcId);
         },
       ),
     ],
 
-    // Pantalla de error de navegación
     errorBuilder: (context, state) => Scaffold(
       body: Center(
         child: Text('Ruta no encontrada: ${state.error}'),
@@ -212,4 +261,3 @@ final routerProvider = Provider<GoRouter>((ref) {
     ),
   );
 });
-

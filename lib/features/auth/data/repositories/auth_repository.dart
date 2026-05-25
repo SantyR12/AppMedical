@@ -85,6 +85,7 @@ class AuthRepository implements IAuthRepository {
 
       // Persistir tokens una vez completado el flujo MFA
       if (loginResponse.accessToken != null) {
+        TokenCache.accessToken = loginResponse.accessToken;
         await storage.write(
           key: kAccessTokenKey,
           value: loginResponse.accessToken,
@@ -92,6 +93,7 @@ class AuthRepository implements IAuthRepository {
         TokenStore.setAccess(loginResponse.accessToken);
       }
       if (loginResponse.refreshToken != null) {
+        TokenCache.refreshToken = loginResponse.refreshToken;
         await storage.write(
           key: kRefreshTokenKey,
           value: loginResponse.refreshToken,
@@ -140,6 +142,8 @@ class AuthRepository implements IAuthRepository {
         );
       }
     } finally {
+      // Siempre limpiar almacenamiento local, aunque el servidor falle
+      TokenCache.clear();
       await storage.delete(key: kAccessTokenKey);
       await storage.delete(key: kRefreshTokenKey);
       await storage.delete(key: kUserKey);
@@ -169,6 +173,34 @@ class AuthRepository implements IAuthRepository {
   }
 
   // ---------------------------------------------------------------------------
+  // PB-05: Desbloquear usuario (admin)
+  // ---------------------------------------------------------------------------
+  @override
+  Future<void> unblockUser(String userId) async {
+    try {
+      await dio.patch('/auth/usuarios/$userId/desbloquear');
+    } on DioException catch (e) {
+      throw _mapDioError(e);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Listar usuarios (admin)
+  // ---------------------------------------------------------------------------
+  @override
+  Future<List<UserModel>> getUsers() async {
+    try {
+      final response = await dio.get('/auth/usuarios');
+      final list = response.data as List<dynamic>;
+      return list
+          .map((e) => UserModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _mapDioError(e);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
 
@@ -184,10 +216,20 @@ class AuthRepository implements IAuthRepository {
       case 400:
         return Exception(serverMessage);
       case 401:
-        // Mensaje genérico por seguridad (PB-03)
         return Exception('Correo o contraseña incorrectos');
+      case 403:
+        return Exception('No tienes permiso para realizar esta acción');
       case 409:
         return Exception('Ya existe un usuario con ese correo');
+      case 423:
+        final mins = e.response?.data?['bloqueadoHasta'] != null
+            ? ((DateTime.parse(e.response!.data['bloqueadoHasta'].toString())
+                        .difference(DateTime.now())
+                        .inSeconds +
+                    59) ~/
+                60)
+            : 15;
+        return Exception('Cuenta bloqueada. Intente de nuevo en $mins minuto(s).');
       case 422:
         return Exception('Datos inválidos. Verificar el formulario.');
       case 423:

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/models/allergy_model.dart';
+import '../../domain/models/mar_model.dart';
 import '../../domain/models/prescription_model.dart';
 import '../../domain/repositories/allergy_repository_interface.dart';
 import '../../data/repositories/prescription_repository.dart';
@@ -260,6 +261,51 @@ class MockPrescriptionRepository implements IPrescriptionRepository {
     );
     _prescripciones[idx] = cancelled;
     return cancelled;
+  }
+
+  @override
+  Future<List<PrescriptionModel>> getByPatient(String pacienteId) async {
+    await Future.delayed(_delay);
+    return _prescripciones
+        .where((p) => p.pacienteId == pacienteId)
+        .toList();
+  }
+
+  @override
+  Future<PrescriptionModel> suspend(String prescriptionId) async {
+    await Future.delayed(_delay);
+    final idx = _prescripciones.indexWhere((p) => p.id == prescriptionId);
+    if (idx == -1) throw Exception('Prescripción no encontrada');
+    final suspended = _prescripciones[idx].copyWith(
+      estado: PrescriptionStatus.cancelada,
+    );
+    _prescripciones[idx] = suspended;
+    return suspended;
+  }
+
+  @override
+  Future<List<MarEntryModel>> getMarEntries(String pacienteId) async {
+    await Future.delayed(_delay);
+    return [];
+  }
+
+  @override
+  Future<MarEntryModel> registerAdministration(
+      RegisterMarEntryRequest request) async {
+    await Future.delayed(_delay);
+    return MarEntryModel(
+      id: 'mar-${DateTime.now().millisecondsSinceEpoch}',
+      prescripcionId: request.prescripcionId,
+      pacienteId: 'pac-001',
+      horaProgramada: request.horaReal,
+      horaReal: request.horaReal,
+      administradoPor: 'Dr. Juan López',
+      resultado: request.resultado,
+      dosisAdministrada: request.dosisAdministrada,
+      viaAdministrada: request.viaAdministrada,
+      observaciones: request.observaciones,
+      creadoEn: DateTime.now(),
+    );
   }
 }
 

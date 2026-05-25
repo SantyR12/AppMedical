@@ -1,34 +1,50 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+/// PB-13: Adjunto clínico (PDF, imagen) vinculado a la historia del paciente.
+class AttachmentModel {
+  const AttachmentModel({
+    required this.id,
+    required this.pacienteId,
+    required this.nombreArchivo,
+    required this.tipoMime,
+    required this.tamanoBytes,
+    required this.urlDescarga,
+    this.descripcion,
+    this.creadoPor,
+    this.creadoEn,
+  });
 
-part 'attachment_model.freezed.dart';
-part 'attachment_model.g.dart';
+  final String id;
+  final String pacienteId;
+  final String nombreArchivo;
+  final String tipoMime;
+  final int tamanoBytes;
+  final String urlDescarga;
+  final String? descripcion;
+  final String? creadoPor;
+  final DateTime? creadoEn;
 
-/// Tipos de archivo soportados para adjuntos (PB-13)
-enum AttachmentType {
-  @JsonValue('pdf') pdf,
-  @JsonValue('imagen') imagen,
-}
+  bool get isImage => tipoMime.startsWith('image/');
 
-/// PB-13: Archivo adjunto a la historia clínica (PDF o imagen).
-///
-/// Los archivos se suben a storage y se guarda la URL de referencia.
-///
-/// Generar archivos con:
-/// dart run build_runner build --delete-conflicting-outputs
-@freezed
-abstract class AttachmentModel with _$AttachmentModel {
-  const factory AttachmentModel({
-    required String id,
-    required String historiaClinicaId,
-    required String nombreArchivo,
-    required AttachmentType tipo,
-    /// URL del archivo en el servidor de almacenamiento
-    required String url,
-    int? tamanoBytes,
-    String? subidoPor,
-    DateTime? subidoEn,
-  }) = _AttachmentModel;
+  String get tamanoLegible {
+    if (tamanoBytes < 1024) return '$tamanoBytes B';
+    if (tamanoBytes < 1024 * 1024) {
+      return '${(tamanoBytes / 1024).toStringAsFixed(1)} KB';
+    }
+    return '${(tamanoBytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
 
-  factory AttachmentModel.fromJson(Map<String, dynamic> json) =>
-      _$AttachmentModelFromJson(json);
+  factory AttachmentModel.fromJson(Map<String, dynamic> json) {
+    return AttachmentModel(
+      id: json['id'] as String,
+      pacienteId: json['pacienteId'] as String,
+      nombreArchivo: json['nombreArchivo'] as String,
+      tipoMime: json['tipoMime'] as String,
+      tamanoBytes: (json['tamanoBytes'] as num).toInt(),
+      urlDescarga: json['urlDescarga'] as String,
+      descripcion: json['descripcion'] as String?,
+      creadoPor: json['creadoPor'] as String?,
+      creadoEn: json['creadoEn'] != null
+          ? DateTime.tryParse(json['creadoEn'].toString())
+          : null,
+    );
+  }
 }

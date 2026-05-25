@@ -213,6 +213,11 @@ class RegisterActionNotifier extends StateNotifier<AsyncActionState> {
   void reset() => state = const AsyncActionState();
 }
 
+/// Provider para la lista de usuarios (admin)
+final usersListProvider = FutureProvider<List<UserModel>>((ref) async {
+  return ref.read(authRepositoryProvider).getUsers();
+});
+
 /// Provider para el estado de verificación OTP
 final mfaActionProvider =
     StateNotifierProvider<MfaActionNotifier, AsyncActionState>(

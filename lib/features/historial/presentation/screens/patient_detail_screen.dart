@@ -3,24 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router.dart';
-import '../../../../shared/widgets/sgp_text_field.dart';
-import '../../../medicamentos_alergias/domain/models/allergy_model.dart';
-import '../../../medicamentos_alergias/providers/allergy_provider.dart';
+import '../../../../features/medicamentos_alergias/presentation/widgets/allergy_banner_widget.dart';
 import '../../domain/models/patient_model.dart';
 import '../../providers/historial_provider.dart';
-import '../widget/allergy_banner.dart';
 
 /// PB-09: Historia clínica del paciente — vista completa con secciones
 /// colapsables.
-///
-/// Criterios implementados:
-/// 1. Botón "Nuevo Paciente" en AppBar
-/// 2. Log de auditoría visible (quién editó, cuándo, desde qué dispositivo)
-/// 3. Secciones colapsables: datos personales, alergias, medicamentos,
-///    diagnósticos, historial de consultas
-/// 4. Control de acceso por rol (solo médicos pueden editar — lo hace el router)
-/// 5. Historia no se elimina, solo se archiva
-/// 6. Shimmer mientras carga (< 2 segundos)
 class PatientDetailScreen extends ConsumerWidget {
   const PatientDetailScreen({super.key, required this.pacienteId});
 
@@ -28,18 +16,12 @@ class PatientDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state        = ref.watch(historialProvider);
-    final allergyState = ref.watch(allergyListProvider);
+    final state = ref.watch(historialProvider);
 
-    // Cargar historia clínica y alergias al montar la pantalla
     ref.listen(historialProvider, (_, __) {});
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (state.record == null && !state.isLoading) {
         ref.read(historialProvider.notifier).loadRecord(pacienteId);
-      }
-      // PB-22: cargar alergias para el banner
-      if (allergyState.allergies.isEmpty && !allergyState.isLoading) {
-        ref.read(allergyListProvider.notifier).loadAllergies(pacienteId);
       }
     });
 
@@ -49,7 +31,6 @@ class PatientDetailScreen extends ConsumerWidget {
             ? Text(state.record!.paciente.nombreCompleto)
             : const Text('Historia clínica'),
         actions: [
-          // Botón de editar — solo médicos (el guard está en el router)
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             onPressed: state.record != null
@@ -78,11 +59,11 @@ class PatientDetailScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: _buildBody(context, state, allergyState),
+      body: _buildBody(context, state),
     );
   }
 
-  Widget _buildBody(BuildContext context, HistorialState state, AllergyListState allergyState) {
+  Widget _buildBody(BuildContext context, HistorialState state) {
     if (state.isLoading) return const _HistorialShimmer();
 
     if (state.hasError) {
@@ -133,66 +114,102 @@ class PatientDetailScreen extends ConsumerWidget {
               ),
             ),
 
+          // PB-22: Banner prominente de alergias activas (no colapsable)
+          AllergyBannerWidget(
+            pacienteId: pacienteId,
+            onTap: () => context.push(
+              AppRoutes.allergies.replaceAll(':id', pacienteId),
+            ),
+          ),
+
           // Log de auditoría (PB-09 criterio 2)
           if (record.ultimoEditadoPor != null)
             _AuditBanner(record: record),
 
           const SizedBox(height: 8),
 
-          // PB-22: Banner prominente de alergias activas
-          _AllergyBannerSection(
-            allergyState: allergyState,
-            pacienteId: pacienteId,
-          ),
-
           // Secciones colapsables (PB-09 criterio 3)
           _CollapsibleSection(
             title: 'Datos personales',
             icon: Icons.person_outline,
             initiallyExpanded: true,
-            child: _DatosPersonalesContent(
-                paciente: record.paciente),
+            child: _DatosPersonalesContent(paciente: record.paciente),
           ),
           _CollapsibleSection(
             title: 'Alergias',
             icon: Icons.warning_amber_outlined,
-            badge: allergyState.allergies
-                .where((a) => a.estado == AllergyStatus.activa)
-                .length,
-            child: allergyState.isLoading
-                ? const Padding(
-                    padding: EdgeInsets.all(8),
-                    child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                  )
-                : allergyState.allergies.isEmpty
-                    ? const _EmptyModuleMessage(message: 'Sin alergias registradas')
-                    : _AllergyList(allergies: allergyState.allergies),
+            badge: record.alergiasIds.length,
+            child: _SectionButton(
+              label: 'Ver y registrar alergias',
+              icon: Icons.warning_amber_outlined,
+              color: Colors.orange,
+              onTap: () => context.push(
+                AppRoutes.allergies.replaceAll(':id', pacienteId),
+              ),
+            ),
           ),
           _CollapsibleSection(
-            title: 'Medicamentos activos',
+            title: 'Prescripciones',
             icon: Icons.medication_outlined,
             badge: record.medicamentosActivosIds.length,
-            child: _EmptyModuleMessage(
-              message:
-                  'Los medicamentos se cargan desde el módulo de Paulo (PB-15)',
+            child: Column(
+              children: [
+                _SectionButton(
+                  label: 'Gestionar prescripciones',
+                  icon: Icons.medication_outlined,
+                  color: Colors.blue,
+                  onTap: () => context.push(
+                    AppRoutes.prescriptions.replaceAll(':id', pacienteId),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _SectionButton(
+                  label: 'Registro de administración (MAR)',
+                  icon: Icons.assignment_outlined,
+                  color: Colors.teal,
+                  onTap: () => context.push(
+                    AppRoutes.patientMar.replaceAll(':id', pacienteId),
+                  ),
+                ),
+              ],
             ),
           ),
           _CollapsibleSection(
-            title: 'Diagnósticos',
+            title: 'Diagnósticos (CIE-10)',
             icon: Icons.local_hospital_outlined,
             badge: record.diagnosticosIds.length,
-            child: _DiagnosticosLink(
-              pacienteId: pacienteId,
-              historiaClinicaId: record.id,
+            child: _SectionButton(
+              label: 'Ver y registrar diagnósticos',
+              icon: Icons.local_hospital_outlined,
+              color: Colors.red,
+              onTap: () => context.push(
+                '/patients/$pacienteId/diagnosticos?historiaId=${record.id}',
+              ),
             ),
           ),
           _CollapsibleSection(
-            title: 'Historial de consultas',
+            title: 'Notas SOAP',
             icon: Icons.history_outlined,
             badge: record.consultasPreviasIds.length,
-            child: _ConsultationHistoryLink(
-              pacienteId: pacienteId,
-              historiaClinicaId: record.id,
+            child: _SectionButton(
+              label: 'Ver y agregar notas SOAP',
+              icon: Icons.description_outlined,
+              color: Colors.purple,
+              onTap: () => context.push(
+                '/patients/$pacienteId/soap?historiaId=${record.id}',
+              ),
+            ),
+          ),
+          _CollapsibleSection(
+            title: 'Adjuntos',
+            icon: Icons.attach_file_outlined,
+            child: _SectionButton(
+              label: 'Ver y subir archivos clínicos',
+              icon: Icons.attach_file_outlined,
+              color: Colors.brown,
+              onTap: () => context.push(
+                AppRoutes.patientAdjuntos.replaceAll(':id', pacienteId),
+              ),
             ),
           ),
         ],
@@ -225,7 +242,7 @@ class PatientDetailScreen extends ConsumerWidget {
       builder: (_) => AlertDialog(
         title: const Text('Archivar historia clínica'),
         content: const Text(
-            'La historia quedará archivada y en modo solo lectura. Seguirá siendo consultable. ¿Confirmas?'),
+            'La historia quedará archivada y en modo solo lectura. ¿Confirmas?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -263,7 +280,7 @@ class _AuditBanner extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -434,181 +451,34 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-class _EmptyModuleMessage extends StatelessWidget {
-  const _EmptyModuleMessage({required this.message});
-  final String message;
+class _SectionButton extends StatelessWidget {
+  const _SectionButton({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      message,
-      style: TextStyle(
-        fontSize: 13,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-        fontStyle: FontStyle.italic,
+    return OutlinedButton.icon(
+      onPressed: onTap,
+      icon: Icon(icon, size: 18, color: color),
+      label: Text(label, style: TextStyle(color: color)),
+      style: OutlinedButton.styleFrom(
+        side: BorderSide(color: color.withValues(alpha: 0.4)),
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       ),
     );
   }
 }
 
-// =============================================================================
-// PB-22: Sección de banner de alergias — se muestra SIEMPRE arriba
-// =============================================================================
-
-class _AllergyBannerSection extends StatelessWidget {
-  const _AllergyBannerSection({
-    required this.allergyState,
-    required this.pacienteId,
-  });
-
-  final AllergyListState allergyState;
-  final String pacienteId;
-
-  @override
-  Widget build(BuildContext context) {
-    final activas = allergyState.allergies
-        .where((a) => a.estado == AllergyStatus.activa)
-        .toList();
-
-    if (activas.isEmpty) return const SizedBox.shrink();
-
-    final hasSevere = activas.any(
-      (a) => a.severidad == AllergySeverity.grave ||
-             a.severidad == AllergySeverity.mortal,
-    );
-
-    final nombres = activas
-        .map((a) => a.agenteCausante)
-        .take(3)
-        .toList();
-
-    return AllergyBanner(
-      allergyCount: activas.length,
-      hasSevere: hasSevere,
-      allergenNames: nombres,
-    );
-  }
-}
-
-// =============================================================================
-// PB-22: Lista de alergias dentro de la sección colapsable
-// =============================================================================
-
-class _AllergyList extends StatelessWidget {
-  const _AllergyList({required this.allergies});
-  final List<AllergyModel> allergies;
-
-  Color _severityColor(AllergySeverity s) {
-    switch (s) {
-      case AllergySeverity.leve:     return Colors.green.shade100;
-      case AllergySeverity.moderada: return Colors.yellow.shade100;
-      case AllergySeverity.grave:    return Colors.orange.shade100;
-      case AllergySeverity.mortal:   return Colors.red.shade100;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: allergies.map((a) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Row(
-          children: [
-            Container(
-              width: 10, height: 10,
-              decoration: BoxDecoration(
-                color: a.estado == AllergyStatus.activa
-                    ? Colors.red : Colors.grey,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                a.agenteCausante,
-                style: const TextStyle(
-                    fontSize: 13, fontWeight: FontWeight.w500),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: _severityColor(a.severidad),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                a.severidad.name,
-                style: const TextStyle(
-                    fontSize: 11, fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
-        ),
-      )).toList(),
-    );
-  }
-}
-
-// =============================================================================
-// PB-26: Navegación a la lista de problemas activos
-// =============================================================================
-
-class _DiagnosticosLink extends StatelessWidget {
-  const _DiagnosticosLink({
-    required this.pacienteId,
-    required this.historiaClinicaId,
-  });
-
-  final String pacienteId;
-  final String historiaClinicaId;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: const Icon(Icons.open_in_new, size: 20),
-      title: const Text('Ver lista de problemas activos',
-          style: TextStyle(fontSize: 14)),
-      onTap: () => context.push(
-        '${AppRoutes.diagnosticos.replaceFirst(':id', pacienteId)}?hcId=$historiaClinicaId',
-      ),
-    );
-  }
-}
-
-// =============================================================================
-// PB-12: Navegación al historial de consultas
-// =============================================================================
-
-class _ConsultationHistoryLink extends StatelessWidget {
-  const _ConsultationHistoryLink({
-    required this.pacienteId,
-    required this.historiaClinicaId,
-  });
-
-  final String pacienteId;
-  final String historiaClinicaId;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: const Icon(Icons.open_in_new, size: 20),
-      title: const Text('Ver historial de consultas',
-          style: TextStyle(fontSize: 14)),
-      onTap: () => context.push(
-        AppRoutes.consultationHistory
-            .replaceFirst(':id', pacienteId)
-            .replaceFirst(':hcId', historiaClinicaId),
-      ),
-    );
-  }
-}
-
-// =============================================================================
-
-/// Skeleton loading — shimmer visual mientras carga la historia (PB-09
-/// criterio 6: carga < 2 segundos, shimmer da feedback inmediato)
 class _HistorialShimmer extends StatefulWidget {
   const _HistorialShimmer();
 
@@ -652,8 +522,8 @@ class _HistorialShimmerState extends State<_HistorialShimmer>
               decoration: BoxDecoration(
                 color: Theme.of(context)
                     .colorScheme
-                    .surfaceVariant
-                    .withOpacity(_animation.value),
+                    .surfaceContainerHighest
+                    .withValues(alpha: _animation.value),
                 borderRadius: BorderRadius.circular(12),
               ),
             ),

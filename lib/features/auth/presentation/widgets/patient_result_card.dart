@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/models/patient_model.dart';
+import '../../../../features/historial/domain/models/patient_model.dart';
 
 /// Widget reutilizable para mostrar un resultado de búsqueda de paciente.
 /// PB-14 criterio 3: muestra nombre completo, tipo y número de documento,

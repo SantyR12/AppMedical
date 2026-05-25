@@ -5,8 +5,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 
 import 'token_store.dart';
 
-/// URL base del backend. Cambiar por la IP del servidor cuando el equipo
-/// levante el backend en Sprint 1.
+/// URL base del backend.
 ///
 /// Para pruebas locales con Android emulator usar: http://10.0.2.2:3000
 /// Para pruebas locales con dispositivo físico usar: http://TU_IP_LOCAL:3000
@@ -16,8 +15,21 @@ const String kBaseUrl = 'http://localhost:3000/api';
 const String kAccessTokenKey = 'sgp_access_token';
 const String kRefreshTokenKey = 'sgp_refresh_token';
 
+/// Cache en memoria para los tokens.
+/// flutter_secure_storage puede no funcionar en Linux desktop (sin keyring),
+/// así que guardamos los tokens en memoria como fuente primaria y en storage
+/// como backup para sesiones persistentes.
+class TokenCache {
+  static String? accessToken;
+  static String? refreshToken;
+
+  static void clear() {
+    accessToken = null;
+    refreshToken = null;
+  }
+}
+
 /// Provider del cliente Dio configurado con el interceptor JWT.
-/// Todos los repositorios del proyecto inyectan este provider.
 final dioClientProvider = Provider<Dio>((ref) {
   final storage = const FlutterSecureStorage();
   final dio = Dio(
@@ -32,7 +44,6 @@ final dioClientProvider = Provider<Dio>((ref) {
     ),
   );
 
-  // Agregar el interceptor que maneja JWT automáticamente
   dio.interceptors.add(
     JwtInterceptor(dio: dio, storage: storage),
   );
@@ -43,7 +54,7 @@ final dioClientProvider = Provider<Dio>((ref) {
 /// Interceptor JWT.
 ///
 /// En cada request:
-/// 1. Lee el access token del almacenamiento seguro
+/// 1. Lee el access token del cache en memoria (o storage como fallback)
 /// 2. Si quedan menos de 5 minutos para que expire → lo renueva primero (PB-06)
 /// 3. Agrega el header Authorization: Bearer <token>
 ///
@@ -57,7 +68,6 @@ class JwtInterceptor extends Interceptor {
   final Dio dio;
   final FlutterSecureStorage storage;
 
-  /// Minutos de anticipación para renovar el token antes de que expire
   static const int _renewBeforeMinutes = 5;
 
   @override
@@ -65,7 +75,6 @@ class JwtInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    // Rutas públicas — no necesitan token
     final publicPaths = [
       '/auth/login',
       '/auth/verify-email',
@@ -75,15 +84,20 @@ class JwtInterceptor extends Interceptor {
       return handler.next(options);
     }
 
-    String? accessToken = TokenStore.access ?? await storage.read(key: kAccessTokenKey);
+    // Leer desde memoria primero (TokenStore o TokenCache), storage como fallback
+    String? accessToken = TokenStore.access ??
+        TokenCache.accessToken ??
+        await storage.read(key: kAccessTokenKey);
 
     if (accessToken != null) {
-      // Verificar si el token expira pronto
-      final expiry = JwtDecoder.getExpirationDate(accessToken);
-      final minutesLeft = expiry.difference(DateTime.now()).inMinutes;
+      try {
+        final expiry = JwtDecoder.getExpirationDate(accessToken);
+        final minutesLeft = expiry.difference(DateTime.now()).inMinutes;
 
-      if (minutesLeft < _renewBeforeMinutes) {
-        // Renovar silenciosamente antes de que el usuario note algo
+        if (minutesLeft < _renewBeforeMinutes) {
+          accessToken = await _refreshAccessToken();
+        }
+      } catch (_) {
         accessToken = await _refreshAccessToken();
       }
     }
@@ -100,32 +114,27 @@ class JwtInterceptor extends Interceptor {
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
-    // 401 = el servidor rechazó el token (expirado o inválido)
     if (err.response?.statusCode == 401) {
       final newToken = await _refreshAccessToken();
       if (newToken != null) {
-        // Reintentar el request original con el token nuevo
         final opts = err.requestOptions;
         opts.headers['Authorization'] = 'Bearer $newToken';
         try {
           final response = await dio.fetch(opts);
           return handler.resolve(response);
-        } catch (_) {
-          // Si el reintento también falla, limpiar sesión
-        }
+        } catch (_) {}
       }
-      // No se pudo renovar — limpiar tokens, el router llevará al login
       await _clearTokens();
     }
 
     return handler.next(err);
   }
 
-  /// Llama al endpoint de refresh y guarda el nuevo access token.
-  /// Devuelve el nuevo token o null si falla.
   Future<String?> _refreshAccessToken() async {
     try {
-      final refreshToken = TokenStore.refresh ?? await storage.read(key: kRefreshTokenKey);
+      final refreshToken = TokenStore.refresh ??
+          TokenCache.refreshToken ??
+          await storage.read(key: kRefreshTokenKey);
       if (refreshToken == null) return null;
 
       final response = await dio.post(
@@ -135,8 +144,9 @@ class JwtInterceptor extends Interceptor {
 
       final newAccessToken = response.data['accessToken'] as String?;
       if (newAccessToken != null) {
-        await storage.write(key: kAccessTokenKey, value: newAccessToken);
+        TokenCache.accessToken = newAccessToken;
         TokenStore.setAccess(newAccessToken);
+        await storage.write(key: kAccessTokenKey, value: newAccessToken);
       }
       return newAccessToken;
     } catch (_) {
@@ -145,8 +155,9 @@ class JwtInterceptor extends Interceptor {
   }
 
   Future<void> _clearTokens() async {
+    TokenCache.clear();
+    TokenStore.clear();
     await storage.delete(key: kAccessTokenKey);
     await storage.delete(key: kRefreshTokenKey);
-    TokenStore.clear();
   }
 }

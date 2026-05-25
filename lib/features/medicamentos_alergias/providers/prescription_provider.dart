@@ -82,9 +82,9 @@ class PrescriptionState {
   final String? errorMessage;
   bool get hasError => errorMessage != null;
   List<PrescriptionModel> get activas =>
-      prescriptions.where((p) => p.estado == EstadoPrescripcion.activa).toList();
+      prescriptions.where((p) => p.estado == PrescriptionStatus.activa).toList();
   List<PrescriptionModel> get historicas =>
-      prescriptions.where((p) => p.estado != EstadoPrescripcion.activa).toList();
+      prescriptions.where((p) => p.estado != PrescriptionStatus.activa).toList();
 
   PrescriptionState copyWith({
     List<PrescriptionModel>? prescriptions, bool? isLoading, String? errorMessage,
@@ -97,7 +97,7 @@ class PrescriptionState {
 
 class PrescriptionNotifier extends StateNotifier<PrescriptionState> {
   PrescriptionNotifier(this._repo) : super(const PrescriptionState());
-  final PrescriptionRepository _repo;
+  final IPrescriptionRepository _repo;
 
   Future<void> loadPrescriptions(String pacienteId) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
@@ -113,7 +113,7 @@ class PrescriptionNotifier extends StateNotifier<PrescriptionState> {
   // Retorna null si éxito, o el mensaje de error si falla (alergia/duplicado)
   Future<String?> create(CreatePrescriptionRequest request) async {
     try {
-      final p = await _repo.create(request);
+      final p = await _repo.createPrescription(request);
       state = state.copyWith(prescriptions: [p, ...state.prescriptions]);
       return null;
     } on Exception catch (e) {
@@ -159,7 +159,7 @@ class MarState {
 
 class MarNotifier extends StateNotifier<MarState> {
   MarNotifier(this._repo) : super(const MarState());
-  final PrescriptionRepository _repo;
+  final IPrescriptionRepository _repo;
 
   Future<void> loadEntries(String pacienteId) async {
     state = state.copyWith(isLoading: true, errorMessage: null);

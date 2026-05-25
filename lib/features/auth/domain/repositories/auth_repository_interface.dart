@@ -33,4 +33,10 @@ abstract class IAuthRepository {
 
   /// Lee el usuario guardado en caché local
   Future<UserModel?> getStoredUser();
+
+  /// Lista todos los usuarios del sistema (solo admin)
+  Future<List<UserModel>> getUsers();
+
+  /// PB-05: Desbloquear una cuenta bloqueada (solo admin)
+  Future<void> unblockUser(String userId);
 }

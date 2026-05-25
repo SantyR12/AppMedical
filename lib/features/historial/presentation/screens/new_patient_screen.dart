@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../shared/utils/validators.dart';
 import '../../../../shared/widgets/sgp_text_field.dart';
+import '../../data/repositories/historial_repository.dart';
 import '../../domain/models/patient_model.dart';
 import '../../providers/historial_provider.dart';
 

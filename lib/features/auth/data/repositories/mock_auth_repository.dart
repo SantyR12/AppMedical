@@ -240,6 +240,36 @@ class MockAuthRepository implements IAuthRepository {
       return null;
     }
   }
+
+  @override
+  Future<List<UserModel>> getUsers() async {
+    await Future.delayed(const Duration(milliseconds: 400));
+    return [
+      const UserModel(
+          id: '1',
+          nombre: 'Admin SGP',
+          correo: 'admin@sgp.com',
+          rol: UserRole.admin,
+          estado: AccountStatus.activo),
+      const UserModel(
+          id: '2',
+          nombre: 'Dr. Médico',
+          correo: 'medico@sgp.com',
+          rol: UserRole.medico,
+          estado: AccountStatus.activo),
+      const UserModel(
+          id: '3',
+          nombre: 'Enfermera Demo',
+          correo: 'enfermera@sgp.com',
+          rol: UserRole.enfermero,
+          estado: AccountStatus.activo),
+    ];
+  }
+
+  @override
+  Future<void> unblockUser(String userId) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+  }
 }
 
 /// Provider del mock — activar este en lugar del real durante la demo

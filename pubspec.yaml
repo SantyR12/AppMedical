@@ -98,13 +98,14 @@ dependencies:
   easy_refresh: ^3.4.0
 
   # Selector de archivos (PDFs e imágenes) para adjuntos — PB-13
-  file_picker: ^8.0.0
+  file_picker: ^8.1.7
 
   # Shimmer de carga — skeleton screens mientras carga la historia clínica
   shimmer: ^3.0.0
 
   # Snackbars / toasts de confirmación y error
   fluttertoast: ^9.0.0
+
 
 # =============================================================================
 # DEPENDENCIAS DE DESARROLLO

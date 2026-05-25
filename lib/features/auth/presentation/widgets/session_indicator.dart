@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/session_provider.dart';
+import '../../providers/session_provider.dart';
 
 /// PB-06 · Widget que muestra en el AppBar cuánto tiempo queda de sesión.
 /// Solo se muestra si quedan menos de 10 minutos — aviso sutil al usuario.

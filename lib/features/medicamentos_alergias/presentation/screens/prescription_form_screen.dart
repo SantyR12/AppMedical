@@ -191,34 +191,64 @@ class _PrescriptionFormScreenState
   }
 
   Future<bool> _showDuplicityConfirmDialog() async {
-    return await showDialog<bool>(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: Row(
-              children: [
-                Icon(Icons.info_outline,
-                    color: Theme.of(context).colorScheme.primary),
-                const SizedBox(width: 8),
-                const Text('Medicamento duplicado'),
-              ],
-            ),
-            content: const Text(
-              'El paciente ya tiene una prescripción activa para este medicamento. '
-              '¿Deseas generar una prescripción adicional?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancelar'),
+    final justifController = TextEditingController();
+    bool confirmed = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.info_outline,
+                  color: Theme.of(ctx).colorScheme.primary),
+              const SizedBox(width: 8),
+              const Text('Medicamento duplicado'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'El paciente ya tiene una prescripción activa para este '
+                'medicamento. Para continuar, ingresa una justificación '
+                'clínica obligatoria.',
               ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('Continuar'),
+              const SizedBox(height: 12),
+              TextField(
+                controller: justifController,
+                maxLines: 3,
+                maxLength: 200,
+                onChanged: (_) => setDialogState(() {}),
+                decoration: const InputDecoration(
+                  hintText: 'Justificación clínica...',
+                  border: OutlineInputBorder(),
+                ),
               ),
             ],
           ),
-        ) ??
-        false;
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: justifController.text.trim().isEmpty
+                  ? null
+                  : () {
+                      confirmed = true;
+                      Navigator.pop(ctx);
+                    },
+              child: const Text('Continuar'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    justifController.dispose();
+    return confirmed;
   }
 
   @override
@@ -361,6 +391,7 @@ class _PrescriptionFormScreenState
                           hintText: 'Ej: 500',
                           labelText: 'Cantidad',
                         ),
+                        onChanged: (_) => setState(() {}),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
                             return 'Requerido';
@@ -389,6 +420,38 @@ class _PrescriptionFormScreenState
                     ),
                   ],
                 ),
+                // PB-18: Aviso si la dosis parece inusualmente alta
+                if (_doseIsHigh()) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                      border:
+                          Border.all(color: Colors.amber.shade600),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline,
+                            color: Colors.amber.shade800, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'La dosis ingresada parece inusualmente alta. '
+                            'Verifique antes de prescribir.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.amber.shade900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
                 const FormGap(height: 14),
 
                 // ── FRECUENCIA ────────────────────────────────────────────
@@ -515,6 +578,21 @@ class _PrescriptionFormScreenState
       case AdministrationRoute.topica:
         return 'Tópica';
     }
+  }
+
+  /// PB-18: Umbral básico por unidad — avisa si la dosis supera valores
+  /// típicamente seguros. No reemplaza el criterio clínico del médico.
+  bool _doseIsHigh() {
+    final val = double.tryParse(_dosisController.text.trim());
+    if (val == null || val <= 0) return false;
+    final thresholds = <DoseUnit, double>{
+      DoseUnit.mg: 5000.0,
+      DoseUnit.ml: 500.0,
+      DoseUnit.mcg: 2000.0,
+      DoseUnit.unidades: 1000.0,
+    };
+    final limit = thresholds[_dosisUnidad];
+    return limit != null && val > limit;
   }
 }
 
