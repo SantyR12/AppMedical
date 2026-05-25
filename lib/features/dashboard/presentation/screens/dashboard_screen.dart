@@ -40,14 +40,22 @@ class DashboardScreen extends ConsumerWidget {
           ),
 
           // ── Cuerpo ───────────────────────────────────────────────────────
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                _SectionLabel('Accesos rápidos'),
-                const SizedBox(height: 14),
-                _MenuGrid(rol: user?.rol),
-              ]),
+          SliverToBoxAdapter(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _SectionLabel('Accesos rápidos'),
+                      const SizedBox(height: 14),
+                      _MenuGrid(rol: user?.rol),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -228,17 +236,22 @@ class _MenuGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = _itemsForRol(rol);
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 14,
-        crossAxisSpacing: 14,
-        childAspectRatio: 1.1,
-      ),
-      itemCount: items.length,
-      itemBuilder: (context, i) => _MenuCard(item: items[i]),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cols = constraints.maxWidth < 400 ? 1 : 2;
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cols,
+            mainAxisSpacing: 14,
+            crossAxisSpacing: 14,
+            childAspectRatio: 1.1,
+          ),
+          itemCount: items.length,
+          itemBuilder: (context, i) => _MenuCard(item: items[i]),
+        );
+      },
     );
   }
 
