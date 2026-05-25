@@ -176,6 +176,10 @@ class _NewPatientScreenState extends ConsumerState<NewPatientScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Nuevo paciente'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
