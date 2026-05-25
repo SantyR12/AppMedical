@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/repositories/attachments_repository.dart';
 import '../../domain/models/attachment_model.dart';
@@ -298,13 +299,18 @@ class _AttachmentCard extends StatelessWidget {
           ],
         ),
         trailing: const Icon(Icons.download_outlined, size: 20),
-        onTap: () {
-          // Placeholder: en producción abre la URL en el navegador o un viewer
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Descargando ${attachment.nombreArchivo}…'),
-            ),
-          );
+        onTap: () async {
+          final uri = Uri.tryParse(attachment.urlDescarga);
+          if (uri == null) return;
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          } else {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('No se pudo abrir el archivo')),
+              );
+            }
+          }
         },
       ),
     );

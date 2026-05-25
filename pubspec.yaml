@@ -100,6 +100,9 @@ dependencies:
   # Selector de archivos (PDFs e imágenes) para adjuntos — PB-13
   file_picker: ^8.1.7
 
+  # Abrir URLs en el navegador o visor nativo (descargas de adjuntos — PB-13)
+  url_launcher: ^6.3.1
+
   # Shimmer de carga — skeleton screens mientras carga la historia clínica
   shimmer: ^3.0.0
 
