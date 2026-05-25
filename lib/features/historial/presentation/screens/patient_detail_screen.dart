@@ -30,6 +30,10 @@ class PatientDetailScreen extends ConsumerWidget {
         title: state.record != null
             ? Text(state.record!.paciente.nombreCompleto)
             : const Text('Historia clínica'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_outlined),
