@@ -7,20 +7,27 @@ import 'package:sgp_app/features/medicamentos_alergias/domain/models/allergy_mod
 import 'package:sgp_app/features/medicamentos_alergias/providers/allergy_provider.dart';
 
 /// PB-20: Alergias del paciente — lista completa + formulario de registro.
-class AllergyFormScreen extends ConsumerWidget {
+class AllergyFormScreen extends ConsumerStatefulWidget {
   const AllergyFormScreen({super.key, required this.pacienteId});
 
   final String pacienteId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(allergyListProvider);
+  ConsumerState<AllergyFormScreen> createState() => _AllergyFormScreenState();
+}
 
+class _AllergyFormScreenState extends ConsumerState<AllergyFormScreen> {
+  @override
+  void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (state.allergies.isEmpty && !state.isLoading) {
-        ref.read(allergyListProvider.notifier).loadAllergies(pacienteId);
-      }
+      ref.read(allergyListProvider.notifier).loadAllergies(widget.pacienteId);
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(allergyListProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -35,14 +42,13 @@ class AllergyFormScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         icon: const Icon(Icons.add),
         label: const Text('Registrar alergia'),
-        onPressed: () => _showForm(context, ref),
+        onPressed: () => _showForm(context),
       ),
-      body: _buildBody(context, ref, state),
+      body: _buildBody(context, state),
     );
   }
 
-  Widget _buildBody(
-      BuildContext context, WidgetRef ref, AllergyListState state) {
+  Widget _buildBody(BuildContext context, AllergyListState state) {
     if (state.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -57,12 +63,12 @@ class AllergyFormScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             Text(state.errorMessage!,
                 textAlign: TextAlign.center,
-                style:
-                    TextStyle(color: Theme.of(context).colorScheme.error)),
+                style: TextStyle(color: Theme.of(context).colorScheme.error)),
             const SizedBox(height: 16),
             FilledButton.icon(
-              onPressed: () =>
-                  ref.read(allergyListProvider.notifier).loadAllergies(pacienteId),
+              onPressed: () => ref
+                  .read(allergyListProvider.notifier)
+                  .loadAllergies(widget.pacienteId),
               icon: const Icon(Icons.refresh),
               label: const Text('Reintentar'),
             ),
@@ -83,7 +89,7 @@ class AllergyFormScreen extends ConsumerWidget {
             const Text('Sin alergias registradas'),
             const SizedBox(height: 8),
             TextButton.icon(
-              onPressed: () => _showForm(context, ref),
+              onPressed: () => _showForm(context),
               icon: const Icon(Icons.add),
               label: const Text('Registrar primera alergia'),
             ),
@@ -98,21 +104,23 @@ class AllergyFormScreen extends ConsumerWidget {
       separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (context, i) => _AllergyCard(
         allergy: state.allergies[i],
-        onToggle: () =>
-            ref.read(allergyListProvider.notifier).toggleStatus(state.allergies[i]),
+        onToggle: () => ref
+            .read(allergyListProvider.notifier)
+            .toggleStatus(state.allergies[i]),
       ),
     );
   }
 
-  void _showForm(BuildContext context, WidgetRef ref) {
+  void _showForm(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (_) => _AllergyForm(
-        pacienteId: pacienteId,
-        onSaved: () =>
-            ref.read(allergyListProvider.notifier).loadAllergies(pacienteId),
+        pacienteId: widget.pacienteId,
+        onSaved: () => ref
+            .read(allergyListProvider.notifier)
+            .loadAllergies(widget.pacienteId),
       ),
     );
   }

@@ -11,22 +11,30 @@ import 'prescription_form_screen.dart';
 /// TabBar:
 ///   Activos   — prescripciones con estado == activa
 ///   Histórico — prescripciones completadas / canceladas
-class MedicationHistoryScreen extends ConsumerWidget {
+class MedicationHistoryScreen extends ConsumerStatefulWidget {
   const MedicationHistoryScreen({super.key, required this.pacienteId});
 
   final String pacienteId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(prescriptionListProvider);
+  ConsumerState<MedicationHistoryScreen> createState() =>
+      _MedicationHistoryScreenState();
+}
 
+class _MedicationHistoryScreenState extends ConsumerState<MedicationHistoryScreen> {
+  @override
+  void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (state.prescriptions.isEmpty && !state.isLoading) {
-        ref
-            .read(prescriptionListProvider.notifier)
-            .loadPrescriptions(pacienteId);
-      }
+      ref
+          .read(prescriptionListProvider.notifier)
+          .loadPrescriptions(widget.pacienteId);
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(prescriptionListProvider);
 
     return DefaultTabController(
       length: 2,
@@ -45,7 +53,7 @@ class MedicationHistoryScreen extends ConsumerWidget {
             context,
             MaterialPageRoute(
               builder: (_) =>
-                  PrescriptionFormScreen(pacienteId: pacienteId),
+                  PrescriptionFormScreen(pacienteId: widget.pacienteId),
             ),
           ),
           icon: const Icon(Icons.add),

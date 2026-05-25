@@ -5,18 +5,26 @@ import 'package:intl/intl.dart';
 import '../../domain/models/mar_model.dart';
 import '../../providers/prescription_provider.dart';
 
-class MarScreen extends ConsumerWidget {
+class MarScreen extends ConsumerStatefulWidget {
   const MarScreen({super.key, required this.pacienteId});
   final String pacienteId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(marProvider);
+  ConsumerState<MarScreen> createState() => _MarScreenState();
+}
+
+class _MarScreenState extends ConsumerState<MarScreen> {
+  @override
+  void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (state.entries.isEmpty && !state.isLoading) {
-        ref.read(marProvider.notifier).loadEntries(pacienteId);
-      }
+      ref.read(marProvider.notifier).loadEntries(widget.pacienteId);
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(marProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Administración de medicamentos')),
@@ -39,13 +47,13 @@ class MarScreen extends ConsumerWidget {
                       itemCount: state.entries.length,
                       itemBuilder: (_, i) => _MarEntryCard(
                         entry: state.entries[i],
-                        onRegister: () => _showRegisterDialog(context, ref, state.entries[i]),
+                        onRegister: () => _showRegisterDialog(context, state.entries[i]),
                       ),
                     ),
     );
   }
 
-  void _showRegisterDialog(BuildContext context, WidgetRef ref, MarEntryModel entry) {
+  void _showRegisterDialog(BuildContext context, MarEntryModel entry) {
     showDialog(context: context,
       builder: (_) => _RegisterAdminDialog(entry: entry, ref: ref));
   }

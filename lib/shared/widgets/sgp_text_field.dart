@@ -69,6 +69,7 @@ class _SgpTextFieldState extends State<SgpTextField> {
       textCapitalization: widget.textCapitalization,
       focusNode: widget.focusNode,
       autofillHints: widget.autofillHints,
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
       decoration: InputDecoration(
         labelText: widget.label,
         hintText: widget.hint,
