@@ -23,6 +23,7 @@ import 'package:sgp_app/features/historial/presentation/screens/diagnosis_screen
 import 'package:sgp_app/features/historial/presentation/screens/mar_screen.dart';
 import 'package:sgp_app/features/historial/presentation/screens/attachments_screen.dart';
 import 'package:sgp_app/features/medicamentos_alergias/presentation/screens/allergy_form_screen.dart';
+import 'package:sgp_app/features/medicamentos_alergias/presentation/screens/medication_history_screen.dart';
 import 'package:sgp_app/features/medicamentos_alergias/presentation/screens/prescription_form_screen.dart';
 
 /// Rutas nombradas de la app — usar siempre estas constantes,
@@ -173,7 +174,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'prescriptions',
         builder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
-          return PrescriptionFormScreen(pacienteId: id);
+          return MedicationHistoryScreen(pacienteId: id);
         },
       ),
 
