@@ -219,18 +219,183 @@ class PatientDetailScreen extends ConsumerWidget {
 
   void _showEditDialog(
       BuildContext context, WidgetRef ref, ClinicalRecordModel record) {
+    final p = record.paciente;
+    final nombreCtrl = TextEditingController(text: p.nombreCompleto);
+    final docCtrl = TextEditingController(text: p.numeroDocumento);
+    final telCtrl = TextEditingController(text: p.telefono ?? '');
+    final correoCtrl = TextEditingController(text: p.correo ?? '');
+    final dirCtrl = TextEditingController(text: p.direccion ?? '');
+    final ecNombreCtrl =
+        TextEditingController(text: p.contactoEmergencia?.nombre ?? '');
+    final ecTelCtrl =
+        TextEditingController(text: p.contactoEmergencia?.telefono ?? '');
+    var tipoDoc = p.tipoDocumento;
+    var sexo = p.sexo;
+    var fechaNac = p.fechaNacimiento;
+    final formKey = GlobalKey<FormState>();
+
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Editar historia clínica'),
-        content: const Text(
-            'Formulario de edición — implementar en Sprint 1 día 4+'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar'),
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Editar historia clínica'),
+          scrollable: true,
+          content: Form(
+            key: formKey,
+            child: SizedBox(
+              width: 400,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    controller: nombreCtrl,
+                    decoration:
+                        const InputDecoration(labelText: 'Nombre completo'),
+                    validator: (v) =>
+                        v == null || v.trim().isEmpty ? 'Requerido' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<DocumentType>(
+                    value: tipoDoc,
+                    decoration:
+                        const InputDecoration(labelText: 'Tipo de documento'),
+                    items: DocumentType.values
+                        .map((d) => DropdownMenuItem(
+                              value: d,
+                              child: Text(d.name.toUpperCase()),
+                            ))
+                        .toList(),
+                    onChanged: (v) =>
+                        setDialogState(() => tipoDoc = v ?? tipoDoc),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: docCtrl,
+                    decoration:
+                        const InputDecoration(labelText: 'Número de documento'),
+                    validator: (v) =>
+                        v == null || v.trim().isEmpty ? 'Requerido' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      'Fecha de nacimiento: '
+                      '${fechaNac.day.toString().padLeft(2, '0')}/'
+                      '${fechaNac.month.toString().padLeft(2, '0')}/'
+                      '${fechaNac.year}',
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    trailing: const Icon(Icons.calendar_today, size: 18),
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: ctx,
+                        initialDate: fechaNac,
+                        firstDate: DateTime(1900),
+                        lastDate: DateTime.now(),
+                      );
+                      if (picked != null) {
+                        setDialogState(() => fechaNac = picked);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 4),
+                  DropdownButtonFormField<Sex>(
+                    value: sexo,
+                    decoration: const InputDecoration(labelText: 'Sexo'),
+                    items: Sex.values
+                        .map((s) => DropdownMenuItem(
+                              value: s,
+                              child: Text(s.name),
+                            ))
+                        .toList(),
+                    onChanged: (v) =>
+                        setDialogState(() => sexo = v ?? sexo),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: telCtrl,
+                    decoration:
+                        const InputDecoration(labelText: 'Teléfono (opcional)'),
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: correoCtrl,
+                    decoration:
+                        const InputDecoration(labelText: 'Correo (opcional)'),
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: dirCtrl,
+                    decoration:
+                        const InputDecoration(labelText: 'Dirección (opcional)'),
+                  ),
+                  const Divider(height: 24),
+                  const Text('Contacto de emergencia',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 13)),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: ecNombreCtrl,
+                    decoration:
+                        const InputDecoration(labelText: 'Nombre'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: ecTelCtrl,
+                    decoration:
+                        const InputDecoration(labelText: 'Teléfono'),
+                    keyboardType: TextInputType.phone,
+                  ),
+                ],
+              ),
+            ),
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (!formKey.currentState!.validate()) return;
+                Navigator.pop(ctx);
+                final ec = ecNombreCtrl.text.trim().isNotEmpty
+                    ? EmergencyContact(
+                        nombre: ecNombreCtrl.text.trim(),
+                        telefono: ecTelCtrl.text.trim().isNotEmpty
+                            ? ecTelCtrl.text.trim()
+                            : null,
+                      )
+                    : null;
+                ref.read(historialProvider.notifier).updateRecord(
+                      recordId: record.id,
+                      data: CreateClinicalRecordRequest(
+                        nombreCompleto: nombreCtrl.text.trim(),
+                        tipoDocumento: tipoDoc,
+                        numeroDocumento: docCtrl.text.trim(),
+                        fechaNacimiento: fechaNac,
+                        sexo: sexo,
+                        telefono: telCtrl.text.trim().isNotEmpty
+                            ? telCtrl.text.trim()
+                            : null,
+                        correo: correoCtrl.text.trim().isNotEmpty
+                            ? correoCtrl.text.trim()
+                            : null,
+                        direccion: dirCtrl.text.trim().isNotEmpty
+                            ? dirCtrl.text.trim()
+                            : null,
+                        contactoEmergencia: ec,
+                      ),
+                    );
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        ),
       ),
     );
   }
