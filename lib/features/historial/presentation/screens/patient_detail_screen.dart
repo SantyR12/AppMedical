@@ -20,7 +20,7 @@ class PatientDetailScreen extends ConsumerWidget {
 
     ref.listen(historialProvider, (_, __) {});
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (state.record == null && !state.isLoading) {
+      if (!state.isLoading && state.record?.paciente.id != pacienteId) {
         ref.read(historialProvider.notifier).loadRecord(pacienteId);
       }
     });
