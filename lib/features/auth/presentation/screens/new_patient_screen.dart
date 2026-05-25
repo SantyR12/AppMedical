@@ -8,6 +8,7 @@ import 'package:sgp_app/shared/widgets/sgp_text_field.dart';
 import 'package:sgp_app/features/historial/domain/models/patient_model.dart';
 import 'package:sgp_app/features/historial/providers/historial_provider.dart';
 import 'package:sgp_app/features/historial/data/repositories/historial_repository.dart';
+import 'package:sgp_app/core/router.dart';
 
 /// PB-10 · Registro de datos demográficos del paciente.
 ///
